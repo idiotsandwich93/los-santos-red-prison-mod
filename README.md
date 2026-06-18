@@ -188,6 +188,7 @@ Enhanced Free Roam Mode
 - [Bob74](https://github.com/Bob74)
 - [DisapprovedByMe](https://github.com/DisapprovedByMe)
 - [Xinerki](https://github.com/Xinerki)
+- [idiotsandwich](https://github.com/idiotsandwich93) 
 
 ## Compatibility
 - Incompatible with
