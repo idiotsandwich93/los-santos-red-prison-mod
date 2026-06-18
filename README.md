@@ -4,7 +4,7 @@
 > system.** The original LSR README is below the divider. Full file-by-file detail:
 > **[PRISON_INTEGRATION.md](PRISON_INTEGRATION.md)**. Current build: **v1.0.0.1013**.
 
-Reimplements the GTA V "prison-mod" experience as native LSR/RPH code (the two are incompatible
+Reimplements idiotsandwich's Bolingbroke Penitentiary experience as native LSR/RPH code (the two are incompatible
 runtimes, so it couldn't be linked directly). Adds a **"Serve Your Sentence"** option to the Busted
 menu.
 
