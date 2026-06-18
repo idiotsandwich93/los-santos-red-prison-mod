@@ -2,7 +2,7 @@
 
 > **This is a personal fork of Los Santos RED that adds a native, interactive prison/incarceration
 > system.** The original LSR README is below the divider. Full file-by-file detail:
-> **[PRISON_INTEGRATION.md](PRISON_INTEGRATION.md)**. Current build: **v1.0.0.1010**.
+> **[PRISON_INTEGRATION.md](PRISON_INTEGRATION.md)**. Current build: **v1.0.0.1013**.
 
 Reimplements the GTA V "prison-mod" experience as native LSR/RPH code (the two are incompatible
 runtimes, so it couldn't be linked directly). Adds a **"Serve Your Sentence"** option to the Busted
@@ -10,25 +10,30 @@ menu.
 
 **What it adds (gameplay)**
 - **Serve a sentence** — get sent to the prison interior (MLO), swap into a jumpsuit, and serve against
-  a countdown HUD in a populated yard, then get released at the gate (clothes restored).
-- **Sentence scales with crimes** — `days = wanted×2 + policeKilled×5 + civiliansKilled×3` (clamped).
+  a countdown HUD, then get released at the gate (clothes restored).
+- **Sentence length scales with crimes** — `days = wanted×2 + policeKilled×5 + civiliansKilled×3` (clamped 1–30 days).
+- **Time served = 48 real minutes per day** — 1 in-game GTA day ≈ 48 real minutes, so 1 day = 48 min,
+  8 days = 384 min, and so on. Deliberately punishing.
+- **Post bail** — press **Shift+B** to pay **$10,000 per sentenced day** (from cash + bank) and walk out
+  immediately, skipping the rest of the sentence. Uses LSR's own banking, like fines.
 - **Escape** — leave the perimeter and become a fugitive in a jumpsuit (wanted level applied; on foot, no chopper).
 - **Riot** — a prompt incites a **melee-only** inmate-vs-guard riot (no firearms/heavy weapons).
 - **Solitary** — assault someone and you're thrown in the hole; sentence extended, then back to gen-pop.
 - **Per-save isolation** — a sentence belongs to the save it started on; loading another character ends it cleanly (no carried-over wanted level).
 
+> **Yard population** (guards/inmates) is handled through the LSR **config XML** (the prison's
+> `PossiblePedSpawns` / dispatch groups), not by this mod's code.
+
 **New code** (`lsr/Player/Incarceration/`): `IncarcerationManager.cs` (serve-loop orchestrator),
-`PrisonOutfit.cs` (jumpsuit via clothing components only — identity preserved), `PrisonPopulation.cs`
-(spawns the yard from the `PrisonPeds` dispatch group, ground-snapped), `PrisonRiot.cs` (melee riot),
-plus `PrisonSettings.cs` (tunables).
+`PrisonOutfit.cs` (jumpsuit via clothing components only — identity preserved), `PrisonRiot.cs`
+(melee riot), plus `PrisonSettings.cs` (tunables).
 
 **Surgical hooks into LSR** (all gated by a single `EntryPoint.PlayerIsIncarcerated` flag): a
-`SendToPrison`/release pipeline in `Respawning.cs`; the **"Serve Your Sentence"** Busted-menu item; and
-"while serving" exemptions so the prison stops flagging the inmate — the key fix is
-`VanillaRestrictedArea.Update()` now honoring authorization (the source of the immediate
-"Trespassing on Government Property" wanted level), plus `Violations`/`RestrictedAreaManager`/
-`OtherViolations` and yard-population fixes in `World.cs`/`Pedestrians.cs`. See
-[PRISON_INTEGRATION.md](PRISON_INTEGRATION.md) for the complete list (5 new files + 16 modified).
+`SendToPrison`/release pipeline in `Respawning.cs`; the **"Serve Your Sentence"** Busted-menu item;
+post-bail through LSR's `BankAccounts`; and "while serving" exemptions so the prison stops flagging the
+inmate — the key fix is `VanillaRestrictedArea.Update()` now honoring authorization (the source of the
+immediate "Trespassing on Government Property" wanted level), plus `Violations` / `RestrictedAreaManager`
+/ `OtherViolations`. See [PRISON_INTEGRATION.md](PRISON_INTEGRATION.md) for the complete file list.
 
 **Building:** targets .NET Framework 4.8 / C# 7.3. `libs/` (incl. the proprietary `RagePluginHookSDK.dll`)
 and `.buildtools/` are gitignored and **not** in this repo — restore them locally, then run

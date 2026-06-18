@@ -5,11 +5,11 @@ inspired by the ScriptHookVDotNet "prison-mod" but reimplemented as native LSR c
 different, incompatible runtimes — `GTA.Ped` ≠ `Rage.Ped` — so prison-mod could not be linked).
 
 It adds a **"Serve Your Sentence"** option to the Busted menu: you get sent to the prison interior
-(an MLO), do your time against a sentence timer in a populated yard, and get released at the gate —
-with optional **escape**, **riot**, and **solitary**, all kept grounded in LSR's realism (no
+(an MLO), do your time against a sentence timer, and get released at the gate — with optional
+**escape**, **riot**, **solitary**, and **post-bail**, all kept grounded in LSR's realism (no
 rockets/heavy weapons; prison-appropriate gear; LSR's own economy/dispatch).
 
-Current build: **v1.0.0.1010** (stamped in `AssemblyInfo.cs`; shown in the LSR load notification so the
+Current build: **v1.0.0.1013** (stamped in `AssemblyInfo.cs`; shown in the LSR load notification so the
 loaded DLL is verifiable).
 
 ---
@@ -17,18 +17,28 @@ loaded DLL is verifiable).
 ## What it does (gameplay)
 
 - **Serve a sentence.** Get arrested → Busted menu → **Serve Your Sentence** → fade to the prison
-  interior, swap into a jumpsuit, and a countdown HUD runs while you roam a populated yard. On expiry
-  you're released at the prison gate and your clothes are restored.
+  interior, swap into a jumpsuit, and a countdown HUD runs while you do your time. On expiry you're
+  released at the prison gate and your clothes are restored.
 - **Sentence length scales with your crimes:** `days = (wantedLevel × 2) + (policeKilled × 5) +
-  (civiliansKilled × 3)`, clamped to `[MinSentenceDays, MaxSentenceDays]`.
+  (civiliansKilled × 3)`, clamped to `[MinSentenceDays, MaxSentenceDays]` (1–30).
+- **Time served = 48 real minutes per day.** 1 in-game (GTA V) day ≈ 48 real-world minutes, so the
+  timer runs that long per sentenced day (1 day = 48 min, 8 days = 384 min, …). Deliberately punishing.
+  The HUD shows `H:MM:SS` once an hour or more remains.
+- **Post bail.** Press **Shift+B** to pay **$10,000 per sentenced day** (drawn from cash + bank) and walk
+  out immediately, skipping the rest of the sentence. Reuses LSR's `BankAccounts` exactly like fines.
 - **Escape.** Physically leave the prison perimeter and you become a fugitive in a jumpsuit — a wanted
   level is applied (default 4) and you keep running. No magic helicopter; you flee on foot.
 - **Riot.** A button prompt (`Cover`) incites a melee-only riot: nearby inmates get improvised weapons
-  (knife/dagger/bat/crowbar/hammer/battleaxe) and fight the guards. No firearms, no heavy weapons.
+  (knife/dagger/bat/crowbar/hammer/battleaxe) and fight the guards. No firearms, no heavy weapons. It
+  acts on whatever peds are present — it does not spawn any.
 - **Solitary.** Assault a nearby inmate/guard and you're thrown in the hole: teleported to the solitary
   prison, sentence extended, riot prompt disabled, then auto-returned to general population.
 - **Per-save isolation.** A sentence belongs to the save file it started on. Load a different
   character and the sentence ends immediately — no carry-over, no phantom "prison break" wanted level.
+
+> **Yard population (guards/inmates) is config-driven, not code-driven.** It comes from the LSR config
+> XML (the prison's `PossiblePedSpawns` / dispatch groups in `Locations.xml`), not from this mod. An
+> earlier runtime-spawning approach was removed for being too volatile.
 
 ---
 
@@ -38,11 +48,10 @@ All new gameplay code lives in `lsr/Player/Incarceration/` plus one settings cla
 
 | File | Purpose |
 |------|---------|
-| `lsr/Player/Incarceration/IncarcerationManager.cs` | The orchestrator. Runs the serve-time `GameFiber` loop: fade → `SendToPrison` → apply jumpsuit → fade in → populate yard → countdown. Handles escape (perimeter check), solitary, riot prompt, save-change abort, death, and release. Sets/clears the `EntryPoint.PlayerIsIncarcerated` flag. Picks the prison for the player's current state (San Andreas → Bolingbroke; Liberty/Alderney → Alderney prison via sister-state matching). |
-| `lsr/Player/Incarceration/PrisonOutfit.cs` | Jumpsuit via **clothing components only** — identity preserved. Saves the current drawable/texture/palette of 8 specific slots, applies the jumpsuit, and restores them on release. Components (componentID, drawable, texture, palette): `{2,19,3,0} {11,32,0,0} {6,7,0,0} {7,103,0,0} {8,15,0,0} {4,27,2,0} {3,3,0,0} {10,0,0,0}`. Head/face (component 0), head-blend, and model are never touched. |
-| `lsr/Player/Incarceration/PrisonPopulation.cs` | Spawns the yard population from LSR's **`PrisonPeds`** dispatchable-person group (splitting guards vs inmates by debug-name/model), applying each `DispatchablePerson`'s `RequiredVariation` + a randomized head for freemode models. Falls back to `s_m_y_prisoner_01` / `s_m_m_prisguard_01` so the yard is never empty. Spawns are **snapped to ground** (`GET_GROUND_Z_FOR_3D_COORD`) so they aren't buried/floating in the multi-level MLO. Peds are persistent + `BlockPermanentEvents`; cleaned up on release/escape/death. |
-| `lsr/Player/Incarceration/PrisonRiot.cs` | Melee-only riot. Operates on already-existing peds (no core spawn logic touched): arms nearby inmates with improvised melee, sets combat attributes, and `TASK_COMBAT_PED`s inmates vs guards within `RiotRadius` for `RiotDurationSeconds`. |
-| `lsr/Data/Settings/PlayerGeneralSettings/PrisonSettings.cs` | All tunables (`ISettingsDefaultable`). See **Settings** below. |
+| `lsr/Player/Incarceration/IncarcerationManager.cs` | The orchestrator. Runs the serve-time `GameFiber` loop: fade → `SendToPrison` → apply jumpsuit → fade in → countdown. Handles escape (perimeter check), solitary, riot prompt, **post-bail**, save-change abort, death, and release. Sets/clears the `EntryPoint.PlayerIsIncarcerated` flag. Picks the prison for the player's current state (San Andreas → Bolingbroke; Liberty/Alderney → Alderney prison via sister-state matching). Sentence rate (48 min/day) and bail rate ($10k/day) are hardcoded consts here. |
+| `lsr/Player/Incarceration/PrisonOutfit.cs` | Jumpsuit via **clothing components only** — identity preserved. Saves the current drawable/texture/palette of 8 specific slots, applies the jumpsuit, restores them on release. Components (componentID, drawable, texture, palette): `{2,19,3,0} {11,32,0,0} {6,7,0,0} {7,103,0,0} {8,15,0,0} {4,27,2,0} {3,3,0,0} {10,0,0,0}`. Head/face (component 0), head-blend, and model are never touched. |
+| `lsr/Player/Incarceration/PrisonRiot.cs` | Melee-only riot. Operates on already-existing peds (no spawning): arms nearby inmates with improvised melee, sets combat attributes, and `TASK_COMBAT_PED`s inmates vs guards within `RiotRadius` for `RiotDurationSeconds`. |
+| `lsr/Data/Settings/PlayerGeneralSettings/PrisonSettings.cs` | Tunables (`ISettingsDefaultable`). See **Settings** below. |
 
 ---
 
@@ -58,70 +67,65 @@ Everything below is keyed off a single static flag, **`EntryPoint.PlayerIsIncarc
 | `lsr/Player/Player.cs` | Constructs and exposes `public IncarcerationManager Incarceration`; in `Reset(...)` the `resetSavedGame` branch calls `Incarceration?.Reset()` so a sentence never carries across characters. |
 | `lsr/Player/Interface/IPoliceRespondable.cs` | Exposes `IncarcerationManager Incarceration { get; }`. |
 | `lsr/Data/Settings/SettingsManager.cs` | Registers `PrisonSettings` (Player settings category). |
-| `lsr/UI/Menu/Main/BustedMenu.cs` | Adds the **"Serve Your Sentence"** menu item (in the arrested / high-level item builders) which calls `Player.Incarceration.StartServingNearest()`. |
-| `Los Santos RED.csproj` | `<Compile>` includes for the 4 Incarceration files + `PrisonSettings.cs`; `<HintPath>`s for `RagePluginHookSDK`, `RAGENativeUI`, `NAudio` repointed to `..\libs\` for the local build. |
-| `Properties/AssemblyInfo.cs` | Version bumped to `1.0.0.1010` (verifiable in the load notification). |
+| `lsr/UI/Menu/Main/BustedMenu.cs` | Adds the **"Serve Your Sentence"** menu item which calls `Player.Incarceration.StartServingNearest()`. |
+| `Los Santos RED.csproj` | `<Compile>` includes for the Incarceration files + `PrisonSettings.cs`; `<HintPath>`s for `RagePluginHookSDK`, `RAGENativeUI`, `NAudio` repointed to `..\libs\` for the local build. |
+| `Properties/AssemblyInfo.cs` | Version (verifiable in the load notification). |
 
-### The serve / release pipeline
+### The serve / release / bail pipeline
 | File | Change |
 |------|--------|
-| `lsr/Player/Respawning/Respawning.cs` | New `SendToPrison(ILocationRespawnable)` — the canonical reset + teleport into the intake point (mirrors `SurrenderToPolice` **minus** the time-skip/bail, since the interactive sentence handles time; it does call `ResetPlayer(resetWanted:true,…)`, so you arrive wanted-free). Also `ReleaseToCoordinates(Vector3,float)`, `PlaceAtRespawnLocation(ILocationRespawnable)`, `ReleaseFromPrison(...)`, and a private `EnsureGroundLoaded(...)` that freezes the player and waits on `REQUEST_COLLISION_AT_COORD` / `HAS_COLLISION_LOADED_AROUND_ENTITY` so they don't fall through the MLO / into the ocean while it streams. |
+| `lsr/Player/Respawning/Respawning.cs` | New `SendToPrison(ILocationRespawnable)` — canonical reset + teleport into the intake point (mirrors `SurrenderToPolice` **minus** the time-skip/bail; it calls `ResetPlayer(resetWanted:true,…)`, so you arrive wanted-free). Also `ReleaseToCoordinates(Vector3,float)`, `PlaceAtRespawnLocation(...)`, and a private `EnsureGroundLoaded(...)` that freezes the player and waits on `REQUEST_COLLISION_AT_COORD` / `HAS_COLLISION_LOADED_AROUND_ENTITY` so they don't fall through the MLO / into the ocean while it streams. |
+| `lsr/Player/Money/BankAccounts.cs` (reused, not modified) | Post-bail checks `GetMoney(true)` (cash + bank) and deducts via `GiveMoney(-amount, true)` — the same path LSR's fines/bail use. |
 
-### "While serving" exemptions — the part that fought us, and the actual fixes
+### "While serving" exemptions — the restricted-area / wanted-level fix
 
-The recurring symptom was an **immediate wanted level on spawning into the prison**. Root cause (found in
-the LSR data + source, not assumed): the Bolingbroke `Prison` location in the deployed **base
-`Locations.xml`** carries a `VanillaRestrictedArea` (a set of angled boxes) blanketing the whole prison,
-and your spawn point sits inside it. Being inside it set `IsTrespassing` → the `Trespassing` crime
-(`ResultingWantedLevel = 2`) → wanted; the `IsRestrictedDuringWanted` JAIL zone then piled on
-"Trespassing on Government Property". The decisive fix was at the **source** of the violation.
+The recurring symptom was an **immediate wanted level on spawning into the prison**. Root cause (found
+in the LSR data + source): the Bolingbroke `Prison` location in the deployed `Locations.xml` carries a
+`VanillaRestrictedArea` blanketing the prison; your spawn point sits inside it, which set `IsTrespassing`
+→ the `Trespassing` crime → wanted, then the `IsRestrictedDuringWanted` JAIL zone piled on "Trespassing
+on Government Property". Fixed at the **source** of the violation.
 
 | File | Change |
 |------|--------|
-| `lsr/Locations/.../RestrictedAreas/Vanilla/VanillaRestrictedArea.cs` | **The key fix.** `Update()` now sets `isPlayerViolating = false` and bails when `EntryPoint.PlayerIsIncarcerated \|\| player.Violations.CanEnterRestrictedAreas`. The custom `RestrictedArea.Update()` already honored `CanEnterRestrictedAreas`; the *vanilla* path was missing it — that omission is what flagged the inmate as trespassing. |
-| `lsr/Player/Violations/Violations.cs` | `CanEnterRestrictedAreas` now also returns true when `EntryPoint.PlayerIsIncarcerated` — the single chokepoint that clears restricted-area state, unlocks gates, suppresses the camera report, and blocks every trespassing crime for an inmate. |
+| `lsr/Locations/.../RestrictedAreas/Vanilla/VanillaRestrictedArea.cs` | **The key fix.** `Update()` now clears `isPlayerViolating` and bails when `EntryPoint.PlayerIsIncarcerated \|\| player.Violations.CanEnterRestrictedAreas`. The custom `RestrictedArea.Update()` already honored `CanEnterRestrictedAreas`; the *vanilla* path was missing it. |
+| `lsr/Player/Violations/Violations.cs` | `CanEnterRestrictedAreas` also returns true while incarcerated — the chokepoint that clears restricted-area state, unlocks gates, suppresses the camera report, and blocks every trespassing crime for an inmate. |
 | `lsr/Player/Crime/RestrictedAreaManager.cs` | `Update()` early-returns (no trespassing flags set) while incarcerated. |
-| `lsr/Player/Violations/OtherViolations.cs` | The "Trespassing on Government Property" check (`IsRestrictedDuringWanted` JAIL zone) is gated with `&& !EntryPoint.PlayerIsIncarcerated`. |
-
-### Keeping the yard populated (stop LSR culling / suppressing prison peds)
-| File | Change |
-|------|--------|
-| `lsr/World/World.cs` | `SetDensity()` forces the spawn multiplier to `1.0` while incarcerated, so LSR's per-frame `SET_PED/SCENARIO_PED_DENSITY_MULTIPLIER_THIS_FRAME` throttle can't thin the yard. |
-| `lsr/World/Pedestrians/Pedestrians.cs` | `CreateNew()` and `Prune()` early-return while incarcerated, so LSR's ped sweep doesn't delete the prison guards (`s_m_m_prisguard_01` would otherwise be routed to `AddAmbientCop` and deleted when no agency matches the zone) or strip/despawn the spawned inmates. |
-| `lsr/VanillaManager/VanillaWorldManager.cs` | `TerminateScenarioPeds()` guarded by the flag. (Holdover from the first attempt — this method isn't on the live call path; the effective density/cull fixes are the two rows above. Left in place, harmless.) |
+| `lsr/Player/Violations/OtherViolations.cs` | The "Trespassing on Government Property" check is gated with `&& !EntryPoint.PlayerIsIncarcerated`. |
 
 ### Per-save sentence isolation
 | File | Change |
 |------|--------|
 | `lsr/Data/Interface/IGameSaves.cs` + `lsr/Data/Saves/GameSaves.cs` | Added `int CurrentSaveNumber => PlayingSave != null ? PlayingSave.SaveNumber : -1`. The serve loop snapshots this at sentence start and ends the sentence the instant it changes (character/save swap) — quietly, with no escape/wanted carry-over. |
 
+> An earlier round modified `World.cs`, `Pedestrians.cs`, and `VanillaWorldManager.cs` (and added a
+> `PrisonPopulation.cs`) to spawn/keep yard peds by fighting LSR's suppression. That was **removed** —
+> yard population is handled in the config XML now. Those three files are back to stock.
+
 ---
 
 ## Settings (`PrisonSettings`, defaults)
 
-Tunables live in LSR's settings system (Player category). Defaults:
+Tunable toggles live in LSR's settings system (Player category):
 
 | Setting | Default | Meaning |
 |---|---|---|
 | `IsEnabled` | `true` | Master toggle for the system. |
-| `RealSecondsPerSentenceDay` | `12` | Real seconds served per sentence-day. |
-| `MinSentenceDays` / `MaxSentenceDays` | `1` / `30` | Sentence clamp. |
+| `MinSentenceDays` / `MaxSentenceDays` | `1` / `30` | Sentence-day clamp. |
 | `AllowEscape` | `true` | Allow breaking out. |
 | `EscapeRadius` | `220` | Metres from the gate that counts as "outside the walls". |
 | `EscapeWantedLevel` | `4` | Wanted level applied on escape. |
 | `AllowRiot` | `true` | Enable the riot prompt. |
 | `RiotRadius` / `RiotDurationSeconds` | `60` / `120` | Riot reach and duration. |
 | `AllowSolitary` | `true` | Send to solitary on assault. |
-| `SolitaryDays` / `SolitaryRealSecondsPerDay` | `3` / `12` | Solitary penalty. |
-| `YardPrisonerCount` / `YardGuardCount` | `10` / `4` | Fallback spawn counts. |
+| `SolitaryDays` / `SolitaryRealSecondsPerDay` | `3` / `12` | Solitary penalty / cell-stay pacing. |
+| `AllowBail` | `true` | Allow posting bail (Shift+B) to skip the rest of the sentence. |
 | `Release X/Y/Z/Heading` | `1856.91, 2607.069, 45.67218, 256.0832` | Release point. |
 
-> **Note on hardcoded critical values:** because LSR's `XmlSerializer` lets a stale deployed `settings.xml`
-> override code defaults, two safety-critical things are pinned in code regardless of settings: the San
-> Andreas **release point** (`1856.91, 2607.069, 45.67218` @ `256.0832`) in `IncarcerationManager.Release`,
-> and the **escape perimeter check** (uses a `220` floor if `EscapeRadius < 50`, a 6-second post-spawn
-> grace, and 2D distance — so a stale/zero setting or a Z-fall during streaming can't read as "already
-> escaped" the instant you spawn). The 8 jumpsuit clothing components are likewise hardcoded.
+> **Hardcoded values (not settings).** To dodge a stale `settings.xml` quietly reverting them, a few
+> gameplay values are pinned in code: the **sentence rate** (48 real min / sentenced day) and **bail
+> rate** ($10,000 / sentenced day) in `IncarcerationManager`; the San Andreas **release point**
+> (`1856.91, 2607.069, 45.67218` @ `256.0832`); the **escape perimeter check** (220 m floor + 6-second
+> post-spawn grace + 2D distance); and the **8 jumpsuit clothing components**.
 
 ---
 
@@ -143,9 +147,9 @@ Then run `build_lsr.ps1` (VS BuildTools MSBuild + `FrameworkPathOverride`). Outp
 
 ## Notes
 
-- **Location data is user-managed.** The prison, its spawn/release points, and the `PrisonPeds` group
-  come from your deployed LSR config XMLs (`Locations.xml`, `DispatchablePeople*.xml`), not from this
-  code. The code resolves the prison at runtime from `PlacesOfInterest`.
+- **Location data is user-managed.** The prison, its spawn/release points, and the yard population come
+  from your deployed LSR config XMLs (`Locations.xml`), not from this code. The code resolves the prison
+  at runtime from `PlacesOfInterest`.
 - **Config loading:** LSR loads `Locations.xml` (base) when `LocationsConfig = Default`; a named variant
   like `Locations_LPP.xml` only loads when a config selects it. Additive `Locations+_*.xml` files always
   layer on top.
