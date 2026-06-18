@@ -241,14 +241,6 @@ public class Pedestrians : ITaskerReportable
     }
     public void CreateNew()
     {
-        // While serving a prison sentence, leave every ped in the yard alone. LSR's normal sweep here
-        // routes vanilla prison guards (s_m_m_prisguard_01) into AddAmbientCop and DELETES them when no
-        // agency matches the prison zone, and strips/adopts the inmates we spawn. Skipping the sweep is
-        // what actually keeps the prison yard populated. Scoped strictly to incarceration.
-        if (EntryPoint.PlayerIsIncarcerated)
-        {
-            return;
-        }
         WorldPeds = Rage.World.GetAllPeds().ToList();// EntryPoint.ModController.AllPeds.ToList();// Rage.World.GetAllPeds().ToList();// Rage.World.GetEntities(GetEntitiesFlags.ConsiderHumanPeds | GetEntitiesFlags.ExcludePlayerPed).ToList();
         GameFiber.Yield();
         int updated = 0;
@@ -393,12 +385,6 @@ public class Pedestrians : ITaskerReportable
 
     public void Prune()
     {
-        // Don't prune while serving time - pruning would set the prison-yard peds non-persistent and let
-        // the engine despawn them. Scoped strictly to incarceration.
-        if (EntryPoint.PlayerIsIncarcerated)
-        {
-            return;
-        }
         PruneServicePeds();
         GameFiber.Yield();//TR 29
         PruneGangMembers();

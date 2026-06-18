@@ -1374,7 +1374,6 @@
     <Compile Include="lsr\Player\Incarceration\IncarcerationManager.cs" />
     <Compile Include="lsr\Player\Incarceration\PrisonOutfit.cs" />
     <Compile Include="lsr\Player\Incarceration\PrisonRiot.cs" />
-    <Compile Include="lsr\Player\Incarceration\PrisonPopulation.cs" />
     <Compile Include="lsr\Player\Activity\SurrenderActivity.cs" />
     <Compile Include="lsr\Player\Activity\WeaponDropping.cs" />
     <Compile Include="lsr\Player\Crime\Crime.cs" />

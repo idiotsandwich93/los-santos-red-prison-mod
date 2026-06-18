@@ -281,13 +281,6 @@ namespace Mod
             {
                 CurrentSpawnMultiplier = 0.0f;
             }
-            // While the player is serving a prison sentence, never suppress ped/scenario density - that
-            // suppression is what was emptying the prison yard. Force full density so the vanilla prison
-            // peds (and our spawned ones) populate the yard. Scoped strictly to incarceration.
-            if (EntryPoint.PlayerIsIncarcerated)
-            {
-                CurrentSpawnMultiplier = 1.0f;
-            }
             if (CurrentSpawnMultiplier != 1.0f && !isSettingDensity)
             {
                 isSettingDensity = true;

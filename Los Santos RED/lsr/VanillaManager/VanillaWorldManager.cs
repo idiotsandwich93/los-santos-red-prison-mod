@@ -154,12 +154,6 @@ public class VanillaWorldManager
     }
     private void TerminateScenarioPeds()
     {
-        // While the player is doing time, let vanilla prison scenario peds (guards, inmates) spawn so
-        // the yard is populated the way the original prison-mod relied on. Scoped to incarceration only.
-        if (EntryPoint.PlayerIsIncarcerated)
-        {
-            return;
-        }
         NativeFunction.Natives.SET_SCENARIO_PED_DENSITY_MULTIPLIER_THIS_FRAME(0f);
     }
     private void TerminateAudio()

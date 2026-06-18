@@ -150,7 +150,7 @@ namespace Mod
             Sprinting = new Sprinting(this, Settings);
             Intoxication = new Intoxication(this);
             Respawning = new Respawning(TimeControllable, World, this, Weapons, PlacesOfInterest, Settings, this, this, ModItems);
-            Incarceration = new IncarcerationManager(this, PlacesOfInterest, Settings, DispatchablePeople, GameSaves);
+            Incarceration = new IncarcerationManager(this, PlacesOfInterest, Settings, GameSaves);
             RelationshipManager = new RelationshipManager(gangs, Settings, PlacesOfInterest, TimeControllable, this, this);
             CellPhone = new CellPhone(this, this, jurisdictions, Settings, TimeControllable, gangs, PlacesOfInterest, Zones, streets, GangTerritories, Crimes, World, ModItems, Weapons, Names, shopMenus, cellphones, Contacts, Agencies);
             PlayerTasks = new PlayerTasks(this, TimeControllable, gangs, PlacesOfInterest, Settings, World, Crimes, names, Weapons, shopMenus, ModItems, pedGroups, Agencies, gangTerritories, zones);

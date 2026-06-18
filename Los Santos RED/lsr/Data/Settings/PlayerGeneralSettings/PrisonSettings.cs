@@ -5,8 +5,6 @@ public class PrisonSettings : ISettingsDefaultable
 {
     [Description("Master toggle for the interactive 'Serve Your Sentence' prison system.")]
     public bool IsEnabled { get; set; }
-    [Description("Real seconds of serving per day of sentence. Sentence length scales with crimes.")]
-    public float RealSecondsPerSentenceDay { get; set; }
     [Description("Minimum sentence length in days.")]
     public int MinSentenceDays { get; set; }
     [Description("Maximum sentence length in days.")]
@@ -29,14 +27,8 @@ public class PrisonSettings : ISettingsDefaultable
     public int SolitaryDays { get; set; }
     [Description("Real seconds spent in solitary before returning to general population, per solitary day.")]
     public float SolitaryRealSecondsPerDay { get; set; }
-    [Description("Let vanilla prison scenario peds (guards/inmates) populate the yard while serving, instead of LSR suppressing them. The prison-mod-faithful way.")]
-    public bool UnsuppressVanillaPeds { get; set; }
-    [Description("Manually spawn extra prisoners/guards while serving (fallback for MLOs that have no vanilla prison peds). Off by default since UnsuppressVanillaPeds handles population.")]
-    public bool PopulateYard { get; set; }
-    [Description("Number of inmates to spawn around the player while serving.")]
-    public int YardPrisonerCount { get; set; }
-    [Description("Number of guards to spawn around the player while serving.")]
-    public int YardGuardCount { get; set; }
+    [Description("Allow the player to post bail to skip the rest of their sentence (costs $10,000 per day sentenced).")]
+    public bool AllowBail { get; set; }
     [Description("Release X coordinate (where the player is let out after serving).")]
     public float ReleaseX { get; set; }
     [Description("Release Y coordinate.")]
@@ -58,7 +50,6 @@ public class PrisonSettings : ISettingsDefaultable
     public void SetDefault()
     {
         IsEnabled = true;
-        RealSecondsPerSentenceDay = 12f;
         MinSentenceDays = 1;
         MaxSentenceDays = 30;
         EscapeRadius = 220f;
@@ -70,10 +61,7 @@ public class PrisonSettings : ISettingsDefaultable
         AllowSolitary = true;
         SolitaryDays = 3;
         SolitaryRealSecondsPerDay = 12f;
-        UnsuppressVanillaPeds = true;
-        PopulateYard = true;
-        YardPrisonerCount = 10;
-        YardGuardCount = 4;
+        AllowBail = true;
         ReleaseX = 1856.91f;
         ReleaseY = 2607.069f;
         ReleaseZ = 45.67218f;

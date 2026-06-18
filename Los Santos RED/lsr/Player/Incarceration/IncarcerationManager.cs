@@ -8,12 +8,14 @@ using System.Linq;
 
 /// <summary>
 /// Drives the interactive prison sentence: sends the player to the prison interior (MLO),
-/// swaps them into a jumpsuit, runs a sentence countdown while they roam the populated prison,
-/// then releases them at the gate. While serving they may incite a riot, get thrown in solitary
+/// swaps them into a jumpsuit, runs a sentence countdown while they roam the prison, then
+/// releases them at the gate. While serving they may incite a riot, get thrown in solitary
 /// for assaulting someone, or break for the fences and trigger a manhunt (escape).
 ///
 /// Location data is resolved at runtime from <see cref="IPlacesOfInterest"/> (loaded from the
 /// user's LSR config XML), so no coordinates are hardcoded. Tuning lives in PrisonSettings.
+/// The prison yard population is handled by the LSR config XML (the prison's PossiblePedSpawns /
+/// dispatch groups), not by this code.
 /// </summary>
 public class IncarcerationManager
 {
@@ -23,12 +25,20 @@ public class IncarcerationManager
     private readonly IGameSaves GameSaves;
     private readonly PrisonOutfit Outfit;
     private readonly PrisonRiot Riot;
-    private readonly PrisonPopulation Population;
 
     private const string RiotPromptID = "IncitePrisonRiot";
     private const string PromptGroup = "PrisonSentence";
 
-    public IncarcerationManager(Mod.Player player, IPlacesOfInterest placesOfInterest, ISettingsProvideable settings, IDispatchablePeople dispatchablePeople, IGameSaves gameSaves)
+    // Sentence pacing: 1 in-game (GTA V) day = 48 real-world minutes at the default time scale, so the
+    // timer runs 48 real minutes per day sentenced (1 day = 48 min, 8 days = 384 min, ...). Hardcoded
+    // rather than read from settings so a stale settings.xml can't quietly revert it.
+    private const float RealSecondsPerSentenceDay = 48f * 60f; // 2880s = 48 minutes
+
+    private const string BailPromptID = "PostPrisonBail";
+    private const string BailPromptGroup = "PrisonBail";
+    private const int BailPerSentenceDay = 10000; // $ per day sentenced; pay it to walk out and skip the rest
+
+    public IncarcerationManager(Mod.Player player, IPlacesOfInterest placesOfInterest, ISettingsProvideable settings, IGameSaves gameSaves)
     {
         Player = player;
         PlacesOfInterest = placesOfInterest;
@@ -36,7 +46,6 @@ public class IncarcerationManager
         GameSaves = gameSaves;
         Outfit = new PrisonOutfit(player);
         Riot = new PrisonRiot(player, settings);
-        Population = new PrisonPopulation(dispatchablePeople);
     }
 
     private PrisonSettings PS => Settings.SettingsManager.PrisonSettings;
@@ -80,7 +89,7 @@ public class IncarcerationManager
             try
             {
                 IsServingSentence = true;
-                EntryPoint.PlayerIsIncarcerated = true; // serving: un-suppress prison peds + exempt from restricted-area trespassing
+                EntryPoint.PlayerIsIncarcerated = true; // serving: exempt from restricted-area trespassing / wanted level
                 EntryPoint.WriteToConsole($"Incarceration: starting {sentenceDays} day sentence at {prison.Name}");
 
                 Game.FadeScreenOut(1500);
@@ -91,15 +100,16 @@ public class IncarcerationManager
                 GameFiber.Sleep(300);
                 Game.FadeScreenIn(1500);
 
-                Game.DisplayHelp($"You have been sentenced to ~r~{sentenceDays} days~s~ at {prison.Name}. Do your time, ~b~incite a riot~s~, or run for the fences. Assault someone and you'll end up in ~o~the hole~s~.");
+                int bailAmount = sentenceDays * BailPerSentenceDay;
+                Game.DisplayHelp($"You have been sentenced to ~r~{sentenceDays} days~s~ at {prison.Name}. Do your time, ~b~incite a riot~s~, run for the fences, or ~g~post bail~s~ (~g~${bailAmount:N0}~s~). Assault someone and you'll end up in ~o~the hole~s~.");
                 AddRiotPrompt();
-                // Always populate - not gated on settings (which may be stale in the user's settings.xml).
-                Population.Spawn(Game.LocalPlayer.Character.Position, 10, 4);
+                AddBailPrompt(bailAmount);
 
                 bool escaped = false;
+                bool bailed = false;
                 bool inSolitary = false;
                 uint solitaryReturnTime = 0;
-                uint endTime = Game.GameTime + (uint)(sentenceDays * PS.RealSecondsPerSentenceDay * 1000f);
+                uint endTime = Game.GameTime + (uint)(sentenceDays * RealSecondsPerSentenceDay * 1000f);
                 int servingSaveNumber = GameSaves != null ? GameSaves.CurrentSaveNumber : -1; // sentence belongs to THIS save
                 uint sentenceStartTime = Game.GameTime;
 
@@ -108,7 +118,6 @@ public class IncarcerationManager
                     if (Player.IsDead)
                     {
                         CleanupPrompts();
-                        Population.Cleanup();
                         EntryPoint.PlayerIsIncarcerated = false;
                         IsServingSentence = false;
                         return; // let LSR's death/respawn flow take over
@@ -119,7 +128,6 @@ public class IncarcerationManager
                     {
                         EntryPoint.WriteToConsole($"Incarceration: save changed ({servingSaveNumber} -> {GameSaves.CurrentSaveNumber}), ending sentence", 0);
                         CleanupPrompts();
-                        Population.Cleanup();
                         EntryPoint.PlayerIsIncarcerated = false;
                         IsServingSentence = false;
                         return;
@@ -148,7 +156,7 @@ public class IncarcerationManager
                     {
                         inSolitary = true;
                         RemoveRiotPrompt();
-                        endTime += (uint)(PS.SolitaryDays * PS.RealSecondsPerSentenceDay * 1000f);
+                        endTime += (uint)(PS.SolitaryDays * RealSecondsPerSentenceDay * 1000f);
                         solitaryReturnTime = Game.GameTime + (uint)(PS.SolitaryDays * PS.SolitaryRealSecondsPerDay * 1000f);
                         SendToSolitary(solitaryPrison);
                     }
@@ -164,6 +172,19 @@ public class IncarcerationManager
                         Riot.Trigger();
                     }
 
+                    // Post bail: pay $10k per sentenced day from total funds (cash + bank) and walk out
+                    // immediately - no more time to serve. Reuses LSR's BankAccounts like fines/bail do.
+                    if (PS.AllowBail && Player.ButtonPrompts.IsPressed(BailPromptID))
+                    {
+                        if (Player.BankAccounts.GetMoney(true) >= bailAmount)
+                        {
+                            Player.BankAccounts.GiveMoney(-bailAmount, true);
+                            bailed = true;
+                            break;
+                        }
+                        Game.DisplayHelp($"~r~You can't make bail.~s~ Bail is ~g~${bailAmount:N0}~s~ and you've only got ~r~${Player.BankAccounts.GetMoney(true):N0}~s~.");
+                    }
+
                     int remainingSeconds = (int)((endTime - Game.GameTime) / 1000u);
                     string label = inSolitary ? "~o~Solitary~s~ - time remaining:" : "~y~Time remaining:~s~";
                     Game.DisplaySubtitle($"{label} {FormatTime(remainingSeconds)}", 1100);
@@ -174,7 +195,6 @@ public class IncarcerationManager
                 if (!IsServingSentence)
                 {
                     // Sentence was aborted externally (character change / mod reset) - do not release/teleport.
-                    Population.Cleanup();
                     EntryPoint.PlayerIsIncarcerated = false;
                     return;
                 }
@@ -184,14 +204,13 @@ public class IncarcerationManager
                 }
                 else
                 {
-                    Release(prison);
+                    Release(prison, bailed);
                 }
             }
             catch (Exception ex)
             {
                 EntryPoint.WriteToConsole("Incarceration error: " + ex.Message + " " + ex.StackTrace);
                 CleanupPrompts();
-                Population.Cleanup();
                 EntryPoint.PlayerIsIncarcerated = false;
                 IsServingSentence = false;
             }
@@ -220,11 +239,10 @@ public class IncarcerationManager
         EntryPoint.WriteToConsole("Incarceration: player returned to general population");
     }
 
-    private void Release(Prison prison)
+    private void Release(Prison prison, bool viaBail)
     {
         Game.FadeScreenOut(1500);
         GameFiber.Sleep(1600);
-        Population.Cleanup();
         Outfit.Restore();
         // Hardcoded San Andreas release point (user-specified), not read from settings so it can't be
         // overridden by a stale settings.xml. Other states fall back to the prison gate.
@@ -246,14 +264,13 @@ public class IncarcerationManager
         EntryPoint.PlayerIsIncarcerated = false;
         IsServingSentence = false;
         Game.FadeScreenIn(1500);
-        Game.DisplayHelp("You have served your sentence. Stay clean.");
-        EntryPoint.WriteToConsole("Incarceration: sentence complete, player released");
+        Game.DisplayHelp(viaBail ? "~g~Bail posted.~s~ You're free to go - stay out of trouble." : "You have served your sentence. Stay clean.");
+        EntryPoint.WriteToConsole(viaBail ? "Incarceration: bail posted, player released" : "Incarceration: sentence complete, player released");
     }
 
     private void HandleEscape()
     {
         // No teleport / no outfit restore: you broke out, you're a fugitive in a jumpsuit.
-        Population.Cleanup();
         EntryPoint.PlayerIsIncarcerated = false;
         IsServingSentence = false;
         Player.SetWantedLevel(PS.EscapeWantedLevel, "Prison Escape", true);
@@ -269,8 +286,20 @@ public class IncarcerationManager
             Player.ButtonPrompts.AddPrompt(PromptGroup, "Incite Riot", RiotPromptID, GameControl.Cover, 15);
         }
     }
+    private void AddBailPrompt(int amount)
+    {
+        if (PS.AllowBail)
+        {
+            // Shift+B - its own group so it stays available even when the riot prompt is cleared (solitary).
+            Player.ButtonPrompts.AddPrompt(BailPromptGroup, $"Post Bail (${amount:N0})", BailPromptID, System.Windows.Forms.Keys.LShiftKey, System.Windows.Forms.Keys.B, 14);
+        }
+    }
     private void RemoveRiotPrompt() => Player.ButtonPrompts.RemovePrompts(PromptGroup);
-    private void CleanupPrompts() => Player.ButtonPrompts.RemovePrompts(PromptGroup);
+    private void CleanupPrompts()
+    {
+        Player.ButtonPrompts.RemovePrompts(PromptGroup);
+        Player.ButtonPrompts.RemovePrompts(BailPromptGroup);
+    }
 
     /// <summary>Abort any active sentence without releasing/teleporting. Called when the character changes.</summary>
     public void Reset()
@@ -278,7 +307,6 @@ public class IncarcerationManager
         if (IsServingSentence)
         {
             CleanupPrompts();
-            Population.Cleanup();
         }
         EntryPoint.PlayerIsIncarcerated = false;
         IsServingSentence = false;
@@ -395,8 +423,10 @@ public class IncarcerationManager
         {
             totalSeconds = 0;
         }
-        int minutes = totalSeconds / 60;
+        int hours = totalSeconds / 3600;
+        int minutes = (totalSeconds % 3600) / 60;
         int seconds = totalSeconds % 60;
-        return $"{minutes:00}:{seconds:00}";
+        // Sentences can now run for hours, so show H:MM:SS once there's at least an hour left.
+        return hours > 0 ? $"{hours}:{minutes:00}:{seconds:00}" : $"{minutes:00}:{seconds:00}";
     }
 }
