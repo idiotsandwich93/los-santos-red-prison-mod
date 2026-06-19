@@ -38,6 +38,11 @@ public class IncarcerationManager
     private const string BailPromptGroup = "PrisonBail";
     private const int BailPerSentenceDay = 10000; // $ per day sentenced; pay it to walk out and skip the rest
 
+    // Prison break: a deliberate action triggered by a prompt that only appears once you've walked out to
+    // the fence line. It is FREE (no cost) - the difficulty is surviving the manhunt, not affording it.
+    private const string BreakPromptID = "StartPrisonBreak";
+    private const string BreakPromptGroup = "PrisonBreak";
+
     public IncarcerationManager(Mod.Player player, IPlacesOfInterest placesOfInterest, ISettingsProvideable settings, IGameSaves gameSaves)
     {
         Player = player;
@@ -107,12 +112,14 @@ public class IncarcerationManager
 
                 bool escaped = false;
                 bool bailed = false;
+                bool bailKeyWasDown = false;
                 bool inSolitary = false;
                 uint solitaryReturnTime = 0;
                 uint endTime = Game.GameTime + (uint)(sentenceDays * RealSecondsPerSentenceDay * 1000f);
                 int servingSaveNumber = GameSaves != null ? GameSaves.CurrentSaveNumber : -1; // sentence belongs to THIS save
                 uint sentenceStartTime = Game.GameTime;
 
+                uint nextSlowUpdate = 0;
                 while (Game.GameTime < endTime && EntryPoint.ModController.IsRunning && IsServingSentence)
                 {
                     if (Player.IsDead)
@@ -133,48 +140,28 @@ public class IncarcerationManager
                         return;
                     }
 
-                    // Escape = the player physically left the prison perimeter. Guard against false positives that
-                    // would fire an escape the moment they spawn: a short grace period, a 2D distance (so a Z-fall
-                    // while collision streams in doesn't count), and a sane radius floor so a stale/zero EscapeRadius
-                    // in the user's settings.xml can't read as "already escaped".
-                    float escapeRadius = PS.EscapeRadius >= 50f ? PS.EscapeRadius : 220f;
-                    bool outsideWalls = Game.GameTime - sentenceStartTime > 6000 &&
-                        Game.LocalPlayer.Character.Position.DistanceTo2D(escapeAnchor) > escapeRadius;
-                    if (outsideWalls)
-                    {
-                        if (PS.AllowEscape)
-                        {
-                            escaped = true;
-                            break;
-                        }
-                        // Escape disabled: drag them back inside.
-                        Player.Respawning.PlaceAtRespawnLocation(inSolitary && solitaryPrison != null ? (ILocationRespawnable)solitaryPrison : prison);
-                        Game.DisplaySubtitle("~r~You can't leave.~s~", 2000);
-                    }
-
-                    if (!inSolitary && PS.AllowSolitary && solitaryPrison != null && PlayerAssaultedNearbyPrisonPed())
-                    {
-                        inSolitary = true;
-                        RemoveRiotPrompt();
-                        endTime += (uint)(PS.SolitaryDays * RealSecondsPerSentenceDay * 1000f);
-                        solitaryReturnTime = Game.GameTime + (uint)(PS.SolitaryDays * PS.SolitaryRealSecondsPerDay * 1000f);
-                        SendToSolitary(solitaryPrison);
-                    }
-                    else if (inSolitary && Game.GameTime >= solitaryReturnTime)
-                    {
-                        inSolitary = false;
-                        ReturnToGeneralPopulation(prison);
-                        AddRiotPrompt();
-                    }
-
+                    // Button prompts MUST be polled every frame: ButtonPrompt.IsPressedNow is set true for only a
+                    // single frame (Input.cs ticks UpdateState per frame), so a 1 Hz poll almost always misses it.
                     if (!inSolitary && PS.AllowRiot && Player.ButtonPrompts.IsPressed(RiotPromptID))
                     {
                         Riot.Trigger();
                     }
-
-                    // Post bail: pay $10k per sentenced day from total funds (cash + bank) and walk out
-                    // immediately - no more time to serve. Reuses LSR's BankAccounts like fines/bail do.
-                    if (PS.AllowBail && Player.ButtonPrompts.IsPressed(BailPromptID))
+                    // Prison break: deliberate now. The "Prison Break" prompt only shows once you've reached the
+                    // fence (managed in the ~1 Hz block below). Hitting it slips you out - no getaway vehicle, no
+                    // weapons - and HandleEscape turns it into an LSR manhunt with you wanted in a jumpsuit.
+                    if (!inSolitary && PS.AllowEscape && Player.ButtonPrompts.IsPressed(BreakPromptID))
+                    {
+                        escaped = true;
+                        break;
+                    }
+                    // Post bail (Shift+B): detect the keys DIRECTLY here, the same way LSR's own hotkeys
+                    // (surrender/sprint) do - level reads (Game.IsShiftKeyDownRightNow + IsKeyDownRightNow) with
+                    // our own edge tracking. The button-prompt path didn't work: its modifier detection uses
+                    // Game.IsKeyDownRightNow(Keys.LShiftKey), which RPH doesn't fire reliably (that's why LSR
+                    // special-cases Shift to Game.IsShiftKeyDownRightNow in IsKeyDownSafe). The prompt is now
+                    // display-only. Pay $10k/sentenced day from cash+bank and walk out immediately.
+                    bool bailKeyDown = Game.IsShiftKeyDownRightNow && Game.IsKeyDownRightNow(System.Windows.Forms.Keys.B);
+                    if (PS.AllowBail && bailKeyDown && !bailKeyWasDown)
                     {
                         if (Player.BankAccounts.GetMoney(true) >= bailAmount)
                         {
@@ -184,11 +171,63 @@ public class IncarcerationManager
                         }
                         Game.DisplayHelp($"~r~You can't make bail.~s~ Bail is ~g~${bailAmount:N0}~s~ and you've only got ~r~${Player.BankAccounts.GetMoney(true):N0}~s~.");
                     }
+                    bailKeyWasDown = bailKeyDown;
 
-                    int remainingSeconds = (int)((endTime - Game.GameTime) / 1000u);
-                    string label = inSolitary ? "~o~Solitary~s~ - time remaining:" : "~y~Time remaining:~s~";
-                    Game.DisplaySubtitle($"{label} {FormatTime(remainingSeconds)}", 1100);
-                    GameFiber.Sleep(1000);
+                    // Heavier checks + HUD only need ~1 Hz (PlayerAssaultedNearbyPrisonPed scans all peds).
+                    if (Game.GameTime >= nextSlowUpdate)
+                    {
+                        nextSlowUpdate = Game.GameTime + 1000;
+
+                        // Prison break is a deliberate action: walk out to the fence (the prison perimeter) and a
+                        // "Prison Break" prompt appears - hit it to slip out (handled per-frame above). No getaway
+                        // vehicle, no weapons; you become a wanted fugitive in a jumpsuit (HandleEscape). Guards:
+                        // a short grace period so the prompt can't fire the instant you spawn, a 2D distance (so a
+                        // Z-fall while collision streams in doesn't count), and a sane radius floor so a stale/zero
+                        // EscapeRadius in settings.xml can't read as "already at the fence".
+                        float escapeRadius = PS.EscapeRadius >= 50f ? PS.EscapeRadius : 220f;
+                        bool pastGrace = Game.GameTime - sentenceStartTime > 6000;
+                        float distToAnchor = Game.LocalPlayer.Character.Position.DistanceTo2D(escapeAnchor);
+                        if (!inSolitary && PS.AllowEscape)
+                        {
+                            // At/near the fence line -> offer the break; back inside -> hide it.
+                            if (pastGrace && distToAnchor > escapeRadius - 25f)
+                            {
+                                AddBreakPrompt();
+                            }
+                            else
+                            {
+                                RemoveBreakPrompt();
+                            }
+                        }
+                        else if (!PS.AllowEscape && pastGrace && distToAnchor > escapeRadius)
+                        {
+                            // Escape disabled: drag them back inside.
+                            Player.Respawning.PlaceAtRespawnLocation(inSolitary && solitaryPrison != null ? (ILocationRespawnable)solitaryPrison : prison);
+                            Game.DisplaySubtitle("~r~You can't leave.~s~", 2000);
+                        }
+
+                        if (!inSolitary && PS.AllowSolitary && solitaryPrison != null && PlayerAssaultedNearbyPrisonPed())
+                        {
+                            inSolitary = true;
+                            RemoveRiotPrompt();
+                            RemoveBreakPrompt(); // no fence in the hole
+                            endTime += (uint)(PS.SolitaryDays * RealSecondsPerSentenceDay * 1000f);
+                            solitaryReturnTime = Game.GameTime + (uint)(PS.SolitaryDays * PS.SolitaryRealSecondsPerDay * 1000f);
+                            SendToSolitary(solitaryPrison);
+                        }
+                        else if (inSolitary && Game.GameTime >= solitaryReturnTime)
+                        {
+                            inSolitary = false;
+                            ReturnToGeneralPopulation(prison);
+                            AddRiotPrompt();
+                        }
+
+                        int remainingSeconds = (int)((endTime - Game.GameTime) / 1000u);
+                        string label = inSolitary ? "~o~Solitary~s~ - time remaining:" : "~y~Time remaining:~s~";
+                        Game.DisplaySubtitle($"{label} {FormatTime(remainingSeconds)}", 1100);
+                    }
+
+                    GameFiber.Yield();
                 }
 
                 CleanupPrompts();
@@ -290,15 +329,22 @@ public class IncarcerationManager
     {
         if (PS.AllowBail)
         {
-            // Shift+B - its own group so it stays available even when the riot prompt is cleared (solitary).
+            // DISPLAY ONLY - shows "Post Bail ($X) Shift+B" in the prompt list. The actual key detection is
+            // done directly in the serve loop (the prompt system's modifier-key detection is unreliable).
+            // Own group so it stays on screen even when the riot prompt is cleared (solitary).
             Player.ButtonPrompts.AddPrompt(BailPromptGroup, $"Post Bail (${amount:N0})", BailPromptID, System.Windows.Forms.Keys.LShiftKey, System.Windows.Forms.Keys.B, 14);
         }
     }
     private void RemoveRiotPrompt() => Player.ButtonPrompts.RemovePrompts(PromptGroup);
+    // Break prompt is shown/hidden as the player reaches or leaves the fence line, so "Prison Break" only
+    // appears when you've actually made it to the perimeter - never from the cell. AddPrompt is idempotent.
+    private void AddBreakPrompt() => Player.ButtonPrompts.AddPrompt(BreakPromptGroup, "Prison Break", BreakPromptID, GameControl.Reload, 13);
+    private void RemoveBreakPrompt() => Player.ButtonPrompts.RemovePrompts(BreakPromptGroup);
     private void CleanupPrompts()
     {
         Player.ButtonPrompts.RemovePrompts(PromptGroup);
         Player.ButtonPrompts.RemovePrompts(BailPromptGroup);
+        Player.ButtonPrompts.RemovePrompts(BreakPromptGroup);
     }
 
     /// <summary>Abort any active sentence without releasing/teleporting. Called when the character changes.</summary>

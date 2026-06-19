@@ -3,18 +3,20 @@ using Rage.Native;
 using System.Collections.Generic;
 
 /// <summary>
-/// Swaps the player into the prison jumpsuit by setting ONLY the specific clothing component slots
-/// below, then restores the originals on release. Nothing else is touched - no head/face (component 0),
-/// no head blend, no model. So the player keeps their identity; only these clothing slots change.
+/// Swaps the player into the prison jumpsuit by setting ONLY the body clothing component slots below,
+/// then restores the originals on release. No head components are touched - no head/face (component 0),
+/// no hair (component 2), no head blend, no overlays (eyebrows/beard/etc.), no model. So the player
+/// keeps their identity AND their hair/eyebrows; only the body clothing slots change.
 /// </summary>
 public class PrisonOutfit
 {
     private readonly Mod.Player Player;
 
-    // Exact prison jumpsuit components (user-provided). componentID, drawableID, textureID, paletteID.
+    // Prison jumpsuit body-clothing components only. componentID, drawableID, textureID, paletteID.
+    // Head components (0 head/face, 1 mask, 2 hair) are deliberately excluded so the player's
+    // hair and eyebrows are never altered.
     private static readonly int[][] Jumpsuit =
     {
-        new[] { 2, 19, 3, 0 },
         new[] { 11, 32, 0, 0 },
         new[] { 6, 7, 0, 0 },
         new[] { 7, 103, 0, 0 },
