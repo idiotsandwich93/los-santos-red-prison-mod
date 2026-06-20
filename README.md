@@ -9,7 +9,7 @@ runtimes, so it couldn't be linked directly). Adds a **"Serve Your Sentence"** o
 menu.
 
 **What it adds (gameplay)**
-- **Serve a sentence** — get sent to the prison interior (MLO), swap into a jumpsuit, and serve against
+- **Serve a sentence** — get sent to the prison yard, swap into a jumpsuit, and serve against
   a countdown HUD, then get released at the gate (clothes restored).
 - **Sentence length scales with crimes** — `days = wanted×2 + policeKilled×5 + civiliansKilled×3` (clamped 1–30 days).
 - **Time served = 48 real minutes per day** — 1 in-game GTA day ≈ 48 real minutes, so 1 day = 48 min,
