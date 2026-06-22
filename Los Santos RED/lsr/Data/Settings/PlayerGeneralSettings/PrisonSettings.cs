@@ -54,7 +54,7 @@ public class PrisonSettings : ISettingsDefaultable
         MaxSentenceDays = 30;
         EscapeRadius = 220f;
         AllowEscape = true;
-        EscapeWantedLevel = 4;
+        EscapeWantedLevel = 5; // prison break = 5-star manhunt
         AllowRiot = true;
         RiotRadius = 60f;
         RiotDurationSeconds = 120;

@@ -88,6 +88,12 @@ public class IncarcerationManager
         int sentenceDays = CalculateSentenceDays();
         Vector3 escapeAnchor = prison.EntrancePosition != Vector3.Zero ? prison.EntrancePosition : prison.RespawnLocation;
         Prison solitaryPrison = GetSolitaryPrison();
+        // Fixed prison-break spot (user-specified, San Andreas / Bolingbroke) - the break prompt only appears
+        // here. Heading at the spot is 8.851988 for reference; the grounded break doesn't teleport so it's
+        // unused. Other states have no defined spot and fall back to the perimeter-fence check below.
+        Vector3 breakSpot = NormalizeState(prison.StateID) == StaticStrings.SanAndreasStateID
+            ? new Vector3(1663.678f, 2486.712f, 45.56493f)
+            : Vector3.Zero;
 
         GameFiber.StartNew(delegate
         {
@@ -178,19 +184,22 @@ public class IncarcerationManager
                     {
                         nextSlowUpdate = Game.GameTime + 1000;
 
-                        // Prison break is a deliberate action: walk out to the fence (the prison perimeter) and a
-                        // "Prison Break" prompt appears - hit it to slip out (handled per-frame above). No getaway
-                        // vehicle, no weapons; you become a wanted fugitive in a jumpsuit (HandleEscape). Guards:
-                        // a short grace period so the prompt can't fire the instant you spawn, a 2D distance (so a
-                        // Z-fall while collision streams in doesn't count), and a sane radius floor so a stale/zero
-                        // EscapeRadius in settings.xml can't read as "already at the fence".
+                        // Prison break is a deliberate action at a FIXED, known spot (a gap in the fence). Walk to
+                        // the break point and a "Prison Break" prompt appears - hit it to slip out (handled per-frame
+                        // above). No getaway vehicle, no weapons; you become a wanted fugitive in a jumpsuit
+                        // (HandleEscape). A short grace period stops the prompt firing the instant you spawn; 2D
+                        // distance ignores Z streaming. Prisons with no defined break spot fall back to "reach the
+                        // perimeter fence" (escapeRadius, with a sane floor against a stale/zero settings value).
                         float escapeRadius = PS.EscapeRadius >= 50f ? PS.EscapeRadius : 220f;
                         bool pastGrace = Game.GameTime - sentenceStartTime > 6000;
                         float distToAnchor = Game.LocalPlayer.Character.Position.DistanceTo2D(escapeAnchor);
                         if (!inSolitary && PS.AllowEscape)
                         {
-                            // At/near the fence line -> offer the break; back inside -> hide it.
-                            if (pastGrace && distToAnchor > escapeRadius - 25f)
+                            // At the break spot (or, with no defined spot, at the perimeter) -> offer it; else hide.
+                            bool atBreakSpot = breakSpot != Vector3.Zero
+                                ? Game.LocalPlayer.Character.Position.DistanceTo2D(breakSpot) < 4f
+                                : distToAnchor > escapeRadius - 25f;
+                            if (pastGrace && atBreakSpot)
                             {
                                 AddBreakPrompt();
                             }
@@ -239,7 +248,7 @@ public class IncarcerationManager
                 }
                 if (escaped)
                 {
-                    HandleEscape();
+                    HandleEscape(prison);
                 }
                 else
                 {
@@ -307,12 +316,30 @@ public class IncarcerationManager
         EntryPoint.WriteToConsole(viaBail ? "Incarceration: bail posted, player released" : "Incarceration: sentence complete, player released");
     }
 
-    private void HandleEscape()
+    private void HandleEscape(Prison prison)
     {
-        // No teleport / no outfit restore: you broke out, you're a fugitive in a jumpsuit.
+        // Break = slip through the fence: clear the serving flags, teleport just outside the wall (the user-set
+        // SA/Bolingbroke exit) so the break actually moves you, then the manhunt drops on you. No outfit restore,
+        // no getaway vehicle, no weapons - a wanted fugitive in the jumpsuit from here. ReleaseToCoordinates
+        // handles collision/streaming (frozen during the fade) so you don't fall through while it loads.
         EntryPoint.PlayerIsIncarcerated = false;
         IsServingSentence = false;
+        // Report the crime FIRST, while you're still at the break spot in the yard surrounded by guards, so it's
+        // genuinely witnessed - that's what makes the wanted level stick. (Reporting it after the teleport, at the
+        // empty exit, left LSR with no witnesses, so it cleared the wanted straight back to 0.) AddViolatingAndObserved
+        // logs "Trespassing on Government Property" as OBSERVED at the player's current position; then floor the wanted
+        // at the escape setting (5). The fade-out below gives the police response ~900ms to lock in before the
+        // teleport moves you, and the manhunt follows you out.
+        Player.Violations.AddViolatingAndObserved(StaticStrings.TrespessingOnGovtPropertyCrimeID);
         Player.SetWantedLevel(PS.EscapeWantedLevel, "Prison Escape", true);
+        if (NormalizeState(prison.StateID) == StaticStrings.SanAndreasStateID)
+        {
+            Game.FadeScreenOut(800);
+            GameFiber.Sleep(900);
+            Player.Respawning.ReleaseToCoordinates(new Vector3(1529.087f, 2584.939f, 45.62539f), 87.80148f);
+            GameFiber.Sleep(200);
+            Game.FadeScreenIn(800);
+        }
         Game.DisplayHelp("~r~You've escaped!~s~ Every cop in the state is hunting you. Ditch the jumpsuit and disappear.");
         Game.DisplaySubtitle("~r~Prison break!~s~", 5000);
         EntryPoint.WriteToConsole("Incarceration: player escaped prison");
