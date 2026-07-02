@@ -15,6 +15,7 @@ using System.Runtime.InteropServices;
 using System.Security.RightsManagement;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using static DispatchScannerFiles;
 
 namespace LSR.Vehicles
@@ -34,6 +35,17 @@ namespace LSR.Vehicles
         protected uint GameTimeLastAddedSonarBlip;
         private uint GameTimeLastDamagedByPlayer;
         private uint GameTimeLastUpdatedDamage;
+
+        private int TotalLockpickPins = 2;
+        private int TotalLockpickPinSteps = 3;
+        private float LockpickZoneWidth = 20f;
+        private float LockpickFillSpeed = 1.0f;
+        private bool HasGottenLockpickStats;
+        private bool HasGottenHotwireStats;
+        private int TotalHotwirePins = 2;
+        private int TotalHotwirePinSteps = 3;
+        private float HotwireZoneWidth = 20f;
+        private float HotwireFillSpeed = 1.0f;
         public bool HasHadPedsRappelOrParachute { get; private set; }
         public uint GameTimeLastHadPedsRappelOrParachute { get; private set; }
         //private List<int> EjectedSeats = new List<int>();
@@ -41,6 +53,8 @@ namespace LSR.Vehicles
         public List<RappelledSeat> RappelledSeats = new List<RappelledSeat>();
         private string storedMakeName;
         private string storedModelName;
+        private float OriginalTopSpeed;
+        public bool SetNewTopSpeed { get; private set; }
 
         public DispatchableVehicle DispatchableVehicle { get; set; }
         public VehicleInteractionMenu VehicleInteractionMenu { get; set; }
@@ -254,7 +268,133 @@ namespace LSR.Vehicles
                 return false;
             }
         }
-            
+
+        public virtual void GetLockpickStats(out int TotalPins, out int TotalPinSteps, out float ZoneWidth, out float FillSpeed)
+        {
+            if(!HasGottenLockpickStats)
+            {
+                int totalPinsMin = Settings.SettingsManager.VehicleSettings.LockpickRegularTotalPinsMin;//  1;
+                int totalPinsMax = Settings.SettingsManager.VehicleSettings.LockpickRegularTotalPinsMax;//4;
+                int totalPinStepsMin = Settings.SettingsManager.VehicleSettings.LockpickRegularTotalPinStepsMin;//2;
+                int totalPinStepsMax = Settings.SettingsManager.VehicleSettings.LockpickRegularTotalPinStepsMax;//4;
+                float zoneWidthMin = Settings.SettingsManager.VehicleSettings.LockpickRegularZoneWidthMin;//10f;
+                float zoneWidthMax = Settings.SettingsManager.VehicleSettings.LockpickRegularZoneWidthMax;//30f;
+                float fillSpeedMin = Settings.SettingsManager.VehicleSettings.LockpickRegularFillSpeedMin;//0.75f;
+                float fillSpeedMax = Settings.SettingsManager.VehicleSettings.LockpickRegularFillSpeedMax;// 1.25f;
+
+                if (vehicleClass == VehicleClass.Super || vehicleClass == VehicleClass.Sport)
+                {
+                    totalPinsMin = Settings.SettingsManager.VehicleSettings.LockpickHighEndTotalPinsMin; //3;
+                    totalPinsMax = Settings.SettingsManager.VehicleSettings.LockpickHighEndTotalPinsMax; //6;
+                    totalPinStepsMin = Settings.SettingsManager.VehicleSettings.LockpickHighEndTotalPinStepsMin; //3;
+                    totalPinStepsMax = Settings.SettingsManager.VehicleSettings.LockpickHighEndTotalPinStepsMax; //5;
+                    zoneWidthMin = Settings.SettingsManager.VehicleSettings.LockpickHighEndZoneWidthMin; //5f;
+                    zoneWidthMax = Settings.SettingsManager.VehicleSettings.LockpickHighEndZoneWidthMax; //15f;
+                    fillSpeedMin = Settings.SettingsManager.VehicleSettings.LockpickHighEndFillSpeedMin; //0.5f;
+                    fillSpeedMax = Settings.SettingsManager.VehicleSettings.LockpickHighEndFillSpeedMax; //0.75f;
+                }
+                else if (vehicleClass == VehicleClass.Emergency || IsPolice)
+                {
+                    totalPinsMin = Settings.SettingsManager.VehicleSettings.LockpickPoliceTotalPinsMin; //4;
+                    totalPinsMax = Settings.SettingsManager.VehicleSettings.LockpickPoliceTotalPinsMax; //6;
+                    totalPinStepsMin = Settings.SettingsManager.VehicleSettings.LockpickPoliceTotalPinStepsMin; //4;
+                    totalPinStepsMax = Settings.SettingsManager.VehicleSettings.LockpickPoliceTotalPinStepsMax; //6;
+                    zoneWidthMin = Settings.SettingsManager.VehicleSettings.LockpickPoliceZoneWidthMin;//10f;
+                    zoneWidthMax = Settings.SettingsManager.VehicleSettings.LockpickPoliceZoneWidthMax;//30f;
+                    fillSpeedMin = Settings.SettingsManager.VehicleSettings.LockpickPoliceFillSpeedMin;//0.75f;
+                    fillSpeedMax = Settings.SettingsManager.VehicleSettings.LockpickPoliceFillSpeedMax;// 1.25f;
+                }
+
+                TotalLockpickPins = RandomItems.GetRandomNumberInt(totalPinsMin, totalPinsMax);
+                TotalLockpickPinSteps = RandomItems.GetRandomNumberInt(totalPinStepsMin, totalPinStepsMax);
+                LockpickZoneWidth = RandomItems.GetRandomNumber(zoneWidthMin, zoneWidthMax);
+                LockpickFillSpeed = RandomItems.GetRandomNumber(fillSpeedMin, fillSpeedMax);
+                HasGottenLockpickStats = true;
+            }
+
+
+            TotalPins = TotalLockpickPins;
+            TotalPinSteps = TotalLockpickPinSteps; 
+            ZoneWidth = LockpickZoneWidth;
+            FillSpeed = LockpickFillSpeed;
+        }
+        public virtual void GetHotwireStats(out int TotalPins, out int TotalPinSteps, out float ZoneWidth, out float FillSpeed)
+        {
+            if (!HasGottenHotwireStats)
+            {
+                //int totalPinsMin = 1;
+                //int totalPinsMax = 2;
+                //int totalPinStepsMin = 2;
+                //int totalPinStepsMax = 3;
+                //float zoneWidthMin = 20f;
+                //float zoneWidthMax = 30f;
+                //float fillSpeedMin = 0.75f;
+                //float fillSpeedMax = 1.25f;
+
+                //if (vehicleClass == VehicleClass.Super || vehicleClass == VehicleClass.Sport)
+                //{
+                //    totalPinsMin = 3;
+                //    totalPinsMax = 4;
+                //    totalPinStepsMin = 2;
+                //    totalPinStepsMax = 4;
+                //    zoneWidthMin = 10f;
+                //    zoneWidthMax = 15f;
+                //    fillSpeedMin = 0.75f;
+                //    fillSpeedMax = 1.00f;
+                //}
+                //else if (vehicleClass == VehicleClass.Emergency || IsPolice)
+                //{
+                //    totalPinsMin = 3;
+                //    totalPinsMax = 5;
+                //    totalPinStepsMin = 3;
+                //    totalPinStepsMax = 5;
+                //}
+
+                int totalPinsMin = Settings.SettingsManager.VehicleSettings.HotwireRegularTotalPinsMin;//  1;
+                int totalPinsMax = Settings.SettingsManager.VehicleSettings.HotwireRegularTotalPinsMax;//4;
+                int totalPinStepsMin = Settings.SettingsManager.VehicleSettings.HotwireRegularTotalPinStepsMin;//2;
+                int totalPinStepsMax = Settings.SettingsManager.VehicleSettings.HotwireRegularTotalPinStepsMax;//4;
+                float zoneWidthMin = Settings.SettingsManager.VehicleSettings.HotwireRegularZoneWidthMin;//10f;
+                float zoneWidthMax = Settings.SettingsManager.VehicleSettings.HotwireRegularZoneWidthMax;//30f;
+                float fillSpeedMin = Settings.SettingsManager.VehicleSettings.HotwireRegularFillSpeedMin;//0.75f;
+                float fillSpeedMax = Settings.SettingsManager.VehicleSettings.HotwireRegularFillSpeedMax;// 1.25f;
+
+                if (vehicleClass == VehicleClass.Super || vehicleClass == VehicleClass.Sport)
+                {
+                    totalPinsMin = Settings.SettingsManager.VehicleSettings.HotwireHighEndTotalPinsMin; //3;
+                    totalPinsMax = Settings.SettingsManager.VehicleSettings.HotwireHighEndTotalPinsMax; //6;
+                    totalPinStepsMin = Settings.SettingsManager.VehicleSettings.HotwireHighEndTotalPinStepsMin; //3;
+                    totalPinStepsMax = Settings.SettingsManager.VehicleSettings.HotwireHighEndTotalPinStepsMax; //5;
+                    zoneWidthMin = Settings.SettingsManager.VehicleSettings.HotwireHighEndZoneWidthMin; //5f;
+                    zoneWidthMax = Settings.SettingsManager.VehicleSettings.HotwireHighEndZoneWidthMax; //15f;
+                    fillSpeedMin = Settings.SettingsManager.VehicleSettings.HotwireHighEndFillSpeedMin; //0.5f;
+                    fillSpeedMax = Settings.SettingsManager.VehicleSettings.HotwireHighEndFillSpeedMax; //0.75f;
+                }
+                else if (vehicleClass == VehicleClass.Emergency || IsPolice)
+                {
+                    totalPinsMin = Settings.SettingsManager.VehicleSettings.HotwirePoliceTotalPinsMin; //4;
+                    totalPinsMax = Settings.SettingsManager.VehicleSettings.HotwirePoliceTotalPinsMax; //6;
+                    totalPinStepsMin = Settings.SettingsManager.VehicleSettings.HotwirePoliceTotalPinStepsMin; //4;
+                    totalPinStepsMax = Settings.SettingsManager.VehicleSettings.HotwirePoliceTotalPinStepsMax; //6;
+                    zoneWidthMin = Settings.SettingsManager.VehicleSettings.HotwirePoliceZoneWidthMin;//10f;
+                    zoneWidthMax = Settings.SettingsManager.VehicleSettings.HotwirePoliceZoneWidthMax;//30f;
+                    fillSpeedMin = Settings.SettingsManager.VehicleSettings.HotwirePoliceFillSpeedMin;//0.75f;
+                    fillSpeedMax = Settings.SettingsManager.VehicleSettings.HotwirePoliceFillSpeedMax;// 1.25f;
+                }
+
+                TotalHotwirePins = RandomItems.GetRandomNumberInt(totalPinsMin, totalPinsMax);
+                TotalHotwirePinSteps = RandomItems.GetRandomNumberInt(totalPinStepsMin, totalPinStepsMax);
+                HotwireZoneWidth = RandomItems.GetRandomNumber(zoneWidthMin, zoneWidthMax);
+                HotwireFillSpeed = RandomItems.GetRandomNumber(fillSpeedMin, fillSpeedMax);
+                HasGottenHotwireStats = true;
+            }
+
+
+            TotalPins = TotalHotwirePins;
+            TotalPinSteps = TotalHotwirePinSteps;
+            ZoneWidth = HotwireZoneWidth;
+            FillSpeed = HotwireFillSpeed;
+        }
 
         public bool CanBeHotwired => !IsMotorcycle && !IsBicycle && !IsAircraft && !IsBoat && !IsJetSki && !IsQuad;
         public bool IsFreeEntry => IsMotorcycle || IsBicycle || IsAircraft || IsBoat || IsJetSki || IsQuad;
@@ -769,7 +909,20 @@ namespace LSR.Vehicles
             NativeFunction.CallByName<bool>("SET_VEHICLE_MOD", Vehicle, 11, NativeFunction.CallByName<int>("GET_NUM_VEHICLE_MODS", Vehicle, 11) - 1, true);//Engine
             NativeFunction.CallByName<bool>("SET_VEHICLE_MOD", Vehicle, 12, NativeFunction.CallByName<int>("GET_NUM_VEHICLE_MODS", Vehicle, 12) - 1, true);//Brakes
             NativeFunction.CallByName<bool>("SET_VEHICLE_MOD", Vehicle, 13, NativeFunction.CallByName<int>("GET_NUM_VEHICLE_MODS", Vehicle, 13) - 1, true);//Tranny
-            //NativeFunction.CallByName<bool>("SET_VEHICLE_MOD", Vehicle, 15, NativeFunction.CallByName<int>("GET_NUM_VEHICLE_MODS", Vehicle, 15) - 1, true);//Suspension
+                                                                                                                                                           //NativeFunction.CallByName<bool>("SET_VEHICLE_MOD", Vehicle, 15, NativeFunction.CallByName<int>("GET_NUM_VEHICLE_MODS", Vehicle, 15) - 1, true);//Suspension
+            if (Settings.SettingsManager.PoliceTaskSettings.AllowOverrideMaxSpeedAssist)
+            {
+                OriginalTopSpeed = Vehicle.TopSpeed;
+                SetNewTopSpeed = true;
+                NativeFunction.Natives.MODIFY_VEHICLE_TOP_SPEED(Vehicle, Settings.SettingsManager.PoliceTaskSettings.OverrideMaxSpeedAssistSpeed);
+                EntryPoint.WriteToConsole($"SET Vehicle {Handle} Top Speed to {Settings.SettingsManager.PoliceTaskSettings.OverrideMaxSpeedAssistSpeed} OriginalTopSpeed:{OriginalTopSpeed}");
+
+            }
+            if (Settings.SettingsManager.PoliceTaskSettings.AllowOverrideAIHandlingAssist)
+            {
+                SetVehicleHandlingOverride = true;
+                NativeFunction.Natives.SET_VEHICLE_HANDLING_OVERRIDE(Vehicle, Game.GetHashKey("SPORTS_CAR"));
+            }
         }
         public void UpdatePlatePrefix(IPlatePrefixable AssignedAgency)
         {
@@ -826,6 +979,7 @@ namespace LSR.Vehicles
         public virtual bool CanNeverUpdatePlate => false;
 
         public bool HasBeenSeenByPoliceDuringWanted { get; set; }
+        public bool SetVehicleHandlingOverride { get; private set; }
 
         private int ClosestColor(List<Color> colors, Color target)
         {
@@ -1706,7 +1860,7 @@ namespace LSR.Vehicles
         }
         public void UpdateHotwirePrompt(IButtonPromptable player)
         {
-            if (!Vehicle.Exists() || (!HasBeenEnteredByPlayer && !IsOwnedByPlayer) || !IsHotWireLocked || VehicleInteractionMenu.IsShowingMenu || Vehicle.Speed >= 0.5f)
+            if (!Vehicle.Exists() || (!HasBeenEnteredByPlayer && !IsOwnedByPlayer) || player.ActivityManager.IsManuallyHotwiringVehicle || !IsHotWireLocked || VehicleInteractionMenu.IsShowingMenu || Vehicle.Speed >= 0.5f)
             {
                 player.ButtonPrompts.RemovePrompts("VehicleHotwire");
                  EntryPoint.WriteToConsole("UpdateHotwirePrompt BASE REMOVE 1");
@@ -1734,7 +1888,7 @@ namespace LSR.Vehicles
             string vehicleText = $"{Handle}";
             if (Vehicle.Exists())
             {
-                vehicleText += $" {Vehicle.Model.Name} WasModSpawned: {WasModSpawned}";
+                vehicleText += $" {Vehicle.Model.Name} WasModSpawned: {WasModSpawned} IsPersistent: {Vehicle.IsPersistent}";
             }
             return vehicleText;
         }
@@ -1851,5 +2005,23 @@ namespace LSR.Vehicles
             }
             return false;
         }
+
+        public void ResetTopSpeed()
+        {
+            EntryPoint.WriteToConsole($"ResetTopSpeed START Reset Vehicle {Handle} Top Speed to {OriginalTopSpeed}");
+            if (!SetNewTopSpeed)
+            {
+                return;
+            }
+            if(!Vehicle.Exists())
+            {
+                return;
+            }
+            NativeFunction.Natives.MODIFY_VEHICLE_TOP_SPEED(Vehicle, OriginalTopSpeed);
+            EntryPoint.WriteToConsole($"Reset Vehicle {Handle} Top Speed to {OriginalTopSpeed}");
+            SetNewTopSpeed = false;
+        }
+
+
     }
 }

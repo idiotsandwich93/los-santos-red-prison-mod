@@ -81,6 +81,8 @@ namespace LosSantosRED.lsr.Interface
         bool IsInWantedActiveMode { get; }
         OutfitManager OutfitManager { get; }
         bool IsInArmedMilitaryVehicle { get; }
+        VehicleRaceManager VehicleRaceManager { get; }
+        GangTerritoryManager GangTerritoryManager { get; }
 
         //  bool IsLootingBody { get; }
 
@@ -88,5 +90,6 @@ namespace LosSantosRED.lsr.Interface
         void OnVehicleCrashed();
         void OnKilledCop();
         void OnKilledCivilian();
+
     }
 }

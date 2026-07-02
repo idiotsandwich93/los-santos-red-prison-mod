@@ -1,5 +1,6 @@
 ﻿using ExtensionsMethods;
 using LosSantosRED.lsr;
+using LosSantosRED.lsr.Helper;
 using LosSantosRED.lsr.Interface;
 using Rage;
 using Rage.Native;
@@ -8,7 +9,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Media.Media3D;
 
 public class HealthState
 {
@@ -27,15 +30,67 @@ public class HealthState
     private uint GameTimeLastSetRagDoll;
     private bool IsPlayer;
     private bool HasSetup = false;
+    private uint GameTimeBetweenBleeds = 2000;
+    private IHealthManageable Player;
+    private List<int> BloodDecals = new List<int>();
+
+
+    private bool AllowBleeding => IsPlayer ? Settings.SettingsManager.DamageSettings.AllowBleedingPlayer : Settings.SettingsManager.DamageSettings.AllowBleedingAI;
+    private int BleedingStopPercentage => IsPlayer ? Settings.SettingsManager.DamageSettings.BleedingStopPercentagePlayer : Settings.SettingsManager.DamageSettings.BleedingStopPercentageAI;
+    private int HealthLostEachBleed => IsPlayer ? Settings.SettingsManager.DamageSettings.HealthLostEachBleedPlayer : Settings.SettingsManager.DamageSettings.HealthLostEachBleedAI;
+    private bool AllowBloodTrails => IsPlayer ? Settings.SettingsManager.DamageSettings.AllowBloodTrailsPlayer : Settings.SettingsManager.DamageSettings.AllowBloodTrailsAI;
+    private int BleedingMinDamageRequirement => IsPlayer ? Settings.SettingsManager.DamageSettings.BleedingMinDamageRequirementPlayer : Settings.SettingsManager.DamageSettings.BleedingMinDamageRequirementAI;
+    private int BleedingPercentage => IsPlayer ? Settings.SettingsManager.DamageSettings.BleedingPercentagePlayer : Settings.SettingsManager.DamageSettings.BleedingPercentageAI;
+    
+    private int BleedingLightDamageAmount => IsPlayer ? Settings.SettingsManager.DamageSettings.BleedingLightDamageAmountPlayer : Settings.SettingsManager.DamageSettings.BleedingLightDamageAmountAI;
+    private int BleedingMediumDamageAmount => IsPlayer ? Settings.SettingsManager.DamageSettings.BleedingMediumDamageAmountPlayer : Settings.SettingsManager.DamageSettings.BleedingMediumDamageAmountAI;
+    private int BleedingHeavyDamageAmount => IsPlayer ? Settings.SettingsManager.DamageSettings.BleedingHeavyDamageAmountPlayer : Settings.SettingsManager.DamageSettings.BleedingHeavyDamageAmountAI;
+    private uint MinGameTimeBetweenBleeds => IsPlayer ? Settings.SettingsManager.DamageSettings.MinGameTimeBetweenBleedsPlayer : Settings.SettingsManager.DamageSettings.MinGameTimeBetweenBleedsAI;
+    private uint MaxGameTimeBetweenBleeds => IsPlayer ? Settings.SettingsManager.DamageSettings.MaxGameTimeBetweenBleedsPlayer : Settings.SettingsManager.DamageSettings.MaxGameTimeBetweenBleedsAI;
+
+
+    private bool AllowRagdoll => IsPlayer ? Settings.SettingsManager.DamageSettings.AllowRagdollPlayer : Settings.SettingsManager.DamageSettings.AllowRagdollAI;
+
+    public int AlwaysRagdollDamageMinimum => IsPlayer ? Settings.SettingsManager.DamageSettings.AlwaysRagdollDamageMinimumPlayer : Settings.SettingsManager.DamageSettings.AlwaysRagdollDamageMinimumAI;
+    public int MediumRagdollDamageMinimum => IsPlayer ? Settings.SettingsManager.DamageSettings.MediumRagdollDamageMinimumPlayer : Settings.SettingsManager.DamageSettings.MediumRagdollDamageMinimumAI;
+    public int MediumRagdollDamagePercentage => IsPlayer ? Settings.SettingsManager.DamageSettings.MediumRagdollDamagePercentagePlayer : Settings.SettingsManager.DamageSettings.MediumRagdollDamagePercentageAI;
+    public int LowRagdollDamageMinimum => IsPlayer ? Settings.SettingsManager.DamageSettings.LowRagdollDamageMinimumPlayer : Settings.SettingsManager.DamageSettings.LowRagdollDamageMinimumAI;
+    public int LowRagdollDamagePercentage => IsPlayer ? Settings.SettingsManager.DamageSettings.LowRagdollDamagePercentagePlayer : Settings.SettingsManager.DamageSettings.LowRagdollDamagePercentageAI;
+    public int TinyRagdollDamageMinimum => IsPlayer ? Settings.SettingsManager.DamageSettings.TinyRagdollDamageMinimumPlayer : Settings.SettingsManager.DamageSettings.TinyRagdollDamageMinimumAI;
+    public int TinyRagdollDamagePercentage => IsPlayer ? Settings.SettingsManager.DamageSettings.TinyRagdollDamagePercentagePlayer : Settings.SettingsManager.DamageSettings.TinyRagdollDamagePercentageAI;
+    public uint AlwaysRagdollMinTime => IsPlayer ? Settings.SettingsManager.DamageSettings.AlwaysRagdollMinTimePlayer : Settings.SettingsManager.DamageSettings.AlwaysRagdollMinTimeAI;
+    public uint AlwaysRagdollMaxTime => IsPlayer ? Settings.SettingsManager.DamageSettings.AlwaysRagdollMaxTimePlayer : Settings.SettingsManager.DamageSettings.AlwaysRagdollMaxTimeAI;
+    public uint MediumRagdollMinTime => IsPlayer ? Settings.SettingsManager.DamageSettings.MediumRagdollMinTimePlayer : Settings.SettingsManager.DamageSettings.MediumRagdollMinTimeAI;
+    public uint MediumRagdollMaxTime => IsPlayer ? Settings.SettingsManager.DamageSettings.MediumRagdollMaxTimePlayer : Settings.SettingsManager.DamageSettings.MediumRagdollMaxTimeAI;
+    public uint LowRagdollMinTime => IsPlayer ? Settings.SettingsManager.DamageSettings.LowRagdollMinTimePlayer : Settings.SettingsManager.DamageSettings.LowRagdollMinTimeAI;
+    public uint LowRagdollMaxTime => IsPlayer ? Settings.SettingsManager.DamageSettings.LowRagdollMaxTimePlayer : Settings.SettingsManager.DamageSettings.LowRagdollMaxTimeAI;
+    public uint TinyRagdollMinTime => IsPlayer ? Settings.SettingsManager.DamageSettings.TinyRagdollMinTimePlayer : Settings.SettingsManager.DamageSettings.TinyRagdollMinTimeAI;
+    public uint TinyRagdollMaxTime => IsPlayer ? Settings.SettingsManager.DamageSettings.TinyRagdollMaxTimePlayer : Settings.SettingsManager.DamageSettings.TinyRagdollMaxTimeAI;
+    public bool EjectPedFromVehicleOnRagdoll => IsPlayer ? Settings.SettingsManager.DamageSettings.EjectPedFromVehicleOnRagdollPlayer : Settings.SettingsManager.DamageSettings.EjectPedFromVehicleOnRagdollAI;
+    public int EjectPedFromVehicleOnRagdollPercentage => IsPlayer ? Settings.SettingsManager.DamageSettings.EjectPedFromVehicleOnRagdollPercentagePlayer : Settings.SettingsManager.DamageSettings.EjectPedFromVehicleOnRagdollPercentageAI;
+
+
+
+
+
+
+
+
+
+
+
+
+
     public HealthState()
     {
 
     }
-    public HealthState(PedExt _MyPed, ISettingsProvideable settings, bool isPlayer)
+    public HealthState(PedExt _MyPed, ISettingsProvideable settings, bool isPlayer, IHealthManageable player)
     {
         MyPed = _MyPed;
         Settings = settings;
         IsPlayer = isPlayer;
+        Player = player;
     }
     public PedExt MyPed { get; set; }
     public bool HasLoggedDeath { get; private set; }
@@ -61,15 +116,22 @@ public class HealthState
             }
         }
     }
-    private bool ShouldBleed
+    private bool BleedDamageTime
     {
         get
         {
-            if (GameTimeLastBled == 0)
+            if(!IsBleeding)
+            {
+                return false;
+            }
+            else if (GameTimeLastBled == 0)
+            {
                 return true;
-            else if (Game.GameTime - GameTimeLastBled >= 2500)
+            }
+            else if (Game.GameTime - GameTimeLastBled >= GameTimeBetweenBleeds)
+            {
                 return true;
-            else
+            }
                 return false;
         }
     }
@@ -78,6 +140,10 @@ public class HealthState
     private uint GameTimeLastModifiedDamage;
     private uint GameTimeLastYelledInPain;
     public bool WasHitByVehicle { get; private set; }
+    public bool IsBleeding { get; private set; }
+
+    private float BleedPercentage;
+    private BleedSeverity CurrentBleedSeverity;
     public void Setup()
     {
         if (!MyPed.Pedestrian.Exists())
@@ -161,6 +227,7 @@ public class HealthState
             MyPed.Pedestrian.KeepTasks = true;
             GameTimeLastSetRagDoll = Game.GameTime;
         }
+        UpdateBleeding();
     }
     public void UpdatePlayer(IPoliceRespondable CurrentPlayer)
     {
@@ -202,6 +269,12 @@ public class HealthState
             }
 
         }
+        UpdateBleeding();
+
+        //if (IsPlayer && IsBleeding)
+        //{
+        //    Game.DisplaySubtitle($"IsBleeding:{IsBleeding} GameTimeLastBled:{GameTimeLastBled} ShouldBleed:{BleedDamageTime}");
+        //}
     }
     private void CheckPainYells(IPoliceRespondable CurrentPlayer, int prevHealth)
     {
@@ -238,7 +311,10 @@ public class HealthState
         CheckPainYells(CurrentPlayer, prevHealth);
 
     }
-
+    public void UpdateCharacterPed(PedExt myPed)
+    {
+        MyPed = myPed;
+    }
     public void Reset()
     {
         HasLoggedDeath = false;
@@ -250,6 +326,8 @@ public class HealthState
             CurrentArmor = Armor;
             CurrentHealth = Health;
         }
+        IsBleeding = false;
+        GameTimeLastBled = 0;
     }
     public void ResurrectPed()
     {
@@ -270,18 +348,18 @@ public class HealthState
 
     public void SetUnconscious(IPoliceRespondable CurrentPlayer)
     {
-        if (MyPed.Pedestrian.Exists())
+        if (!MyPed.Pedestrian.Exists())
         {
-            MyPed.CanBeAmbientTasked = false;
-            MyPed.CanBeTasked = false;
-            MyPed.YellInPain(true);
-            MyPed.IsUnconscious = true;
-            MyPed.OnUnconscious(CurrentPlayer);
-            NativeFunction.Natives.SET_PED_TO_RAGDOLL(MyPed.Pedestrian, -1, -1, 0, true, true, false);
-            //EntryPoint.WriteToConsole($"HEALTHSTATE SetUnconscious {MyPed.Pedestrian.Handle} GameTimeLastInjured {MyPed.GameTimeLastInjured} Health {Health}");
+            return;
         }
+        MyPed.CanBeAmbientTasked = false;
+        MyPed.CanBeTasked = false;
+        MyPed.YellInPain(true);
+        MyPed.IsUnconscious = true;
+        MyPed.OnUnconscious(CurrentPlayer);
+        NativeFunction.Natives.SET_PED_TO_RAGDOLL(MyPed.Pedestrian, -1, -1, 0, true, true, false);
+        //EntryPoint.WriteToConsole($"HEALTHSTATE SetUnconscious {MyPed.Pedestrian.Handle} GameTimeLastInjured {MyPed.GameTimeLastInjured} Health {Health}");
     }
-
 
     private void FlagDamage(IPoliceRespondable CurrentPlayer, IEntityProvideable world)
     {
@@ -427,10 +505,15 @@ public class HealthState
         WasMeleeAttacked = false;
         HurtByPed = NativeFunction.CallByName<bool>("HAS_ENTITY_BEEN_DAMAGED_BY_ANY_PED", MyPed.Pedestrian);
         HurtByVehicle = NativeFunction.CallByName<bool>("HAS_ENTITY_BEEN_DAMAGED_BY_ANY_VEHICLE", MyPed.Pedestrian);
+
+        int HealthDamage = Health - CurrentHealth;
+        int ArmorDamage = Armor - CurrentArmor;
+        int NewHealthDamage = HealthDamage;
+
         if (HurtByPed || HurtByVehicle)
         {
-            int HealthDamage = Health - CurrentHealth;
-            int ArmorDamage = Armor - CurrentArmor;
+            //int HealthDamage = Health - CurrentHealth;
+            //int ArmorDamage = Armor - CurrentArmor;
 
 
             if(HealthDamage == 0 && ArmorDamage == 0)
@@ -488,7 +571,7 @@ public class HealthState
             float HealthDamageModifier = GetDamageModifier(HealthInjury, false);
             float ArmorDamageModifier = GetDamageModifier(ArmorInjury, true);
 
-            int NewHealthDamage = Convert.ToInt32(HealthDamage * HealthDamageModifier);
+            NewHealthDamage = Convert.ToInt32(HealthDamage * HealthDamageModifier);
             int NewArmorDamage = 0;
             if (ArmorWillProtect)
             {
@@ -509,10 +592,16 @@ public class HealthState
         }
         if (Health != CurrentHealth && MyPed.Pedestrian.Health > 0)
         {
-            SetRagdoll(CurrentHealth);
+            EntryPoint.WriteToConsole("RAGDOLL AND BLEED RAN");
+            SetRagdoll(NewHealthDamage);
+            SetBleed(NewHealthDamage);
         }
 
+
     }
+    
+
+
     private InjuryType RandomType(bool CanBeFatal)
     {
         var ToPickFrom = new List<(float, InjuryType)> { };
@@ -560,32 +649,7 @@ public class HealthState
         }
         return InjuryType.Normal;
     }
-    private void SetRagdoll(int NewHealth)
-    {
-        if(!Settings.SettingsManager.DamageSettings.AllowRagdoll)
-        {
-            return;
-        }
-        if (Health - NewHealth >= 65)
-        {
-            //EntryPoint.WriteToConsole($"HEALTHSTATE: RAGDOLL 1 {MyPed.Pedestrian.Handle} Health - NewHealth = {Health - NewHealth} NewHealth {NewHealth} Health {Health} MyPed.Pedestrian.Health {MyPed.Pedestrian.Health}");
-            //NativeFunction.CallByName<bool>("SET_PED_TO_RAGDOLL", MyPed.Pedestrian, 3000, 3000, 0, false, false, false);
-        }
-        //else if (Health - NewHealth >= 35 && RandomItems.RandomPercent(60))
-        //{
-        //    EntryPoint.WriteToConsole($"HEALTHSTATE: RAGDOLL 2 {MyPed.Pedestrian.Handle} Health - NewHealth = {Health - NewHealth} NewHealth {NewHealth} Health {Health} MyPed.Pedestrian.Health {MyPed.Pedestrian.Health}", 5);
-        //   // NativeFunction.CallByName<bool>("SET_PED_TO_RAGDOLL", MyPed.Pedestrian, 1500, 1500, 1, false, false, false);
-        //}
-        //else if (Health - NewHealth >= 15 && RandomItems.RandomPercent(30))
-        //{
-        //    EntryPoint.WriteToConsole($"HEALTHSTATE: RAGDOLL 3 {MyPed.Pedestrian.Handle} Health - NewHealth = {Health - NewHealth} NewHealth {NewHealth} Health {Health} MyPed.Pedestrian.Health {MyPed.Pedestrian.Health}", 5);
-        //    NativeFunction.CallByName<bool>("SET_PED_TO_RAGDOLL", MyPed.Pedestrian, 1500, 1500, 1, false, false, false);
-        //}
-        //else if (Health - NewHealth >= 10)
-        //{
-        //    EntryPoint.WriteToConsole($"HEALTHSTATE: RAGDOLL 4 {MyPed.Pedestrian.Handle} Health - NewHealth = {Health - NewHealth} NewHealth {NewHealth} Health {Health} MyPed.Pedestrian.Health {MyPed.Pedestrian.Health}", 5);
-        //}
-    }
+    
     private Bone GetBone(int ID)
     {
         List<Bone>  PedBones = new List<Bone>
@@ -693,4 +757,195 @@ public class HealthState
     }
 
 
+
+    private void SetRagdoll(int HealthDamage)
+    {
+        if (!AllowRagdoll)
+        {
+            return;
+        }
+        EntryPoint.WriteToConsole($"SetRagdoll HealthDifference: {HealthDamage} IsPlayer{IsPlayer}");
+        bool isInVehicle = IsPlayer && Player != null ? Player.IsInVehicle : MyPed.IsInVehicle;
+        bool CanBeEjectedOnDamage = isInVehicle && EjectPedFromVehicleOnRagdoll && RandomItems.RandomPercent(EjectPedFromVehicleOnRagdollPercentage);
+        if (HealthDamage >= AlwaysRagdollDamageMinimum)
+        {
+            if (CanBeEjectedOnDamage)
+            {
+                NativeFunction.Natives.TASK_LEAVE_ANY_VEHICLE(MyPed.Pedestrian, 0, 4096);
+            }
+            EntryPoint.WriteToConsole($"HEALTHSTATE: RAGDOLL 1 {MyPed.Pedestrian.Handle} Health - NewHealth = {HealthDamage} NewHealth {HealthDamage} Health {Health} MyPed.Pedestrian.Health {MyPed.Pedestrian.Health}");
+            NativeFunction.CallByName<bool>("SET_PED_TO_RAGDOLL", MyPed.Pedestrian,AlwaysRagdollMinTime, AlwaysRagdollMaxTime, 0, false, false, false);
+        }
+        else if (HealthDamage >= MediumRagdollDamageMinimum && RandomItems.RandomPercent(MediumRagdollDamagePercentage))
+        {
+            if (CanBeEjectedOnDamage)
+            {
+                NativeFunction.Natives.TASK_LEAVE_ANY_VEHICLE(MyPed.Pedestrian, 0, 4096);
+            }
+            EntryPoint.WriteToConsole($"HEALTHSTATE: RAGDOLL 2 {MyPed.Pedestrian.Handle} Health - NewHealth = {HealthDamage} NewHealth {HealthDamage} Health {Health} MyPed.Pedestrian.Health {MyPed.Pedestrian.Health}", 5);
+            NativeFunction.CallByName<bool>("SET_PED_TO_RAGDOLL", MyPed.Pedestrian, MediumRagdollMinTime, MediumRagdollMaxTime, 1, false, false, false);
+        }
+        else if (HealthDamage >= LowRagdollDamageMinimum && RandomItems.RandomPercent(LowRagdollDamagePercentage)) //15 && RandomItems.RandomPercent(30))
+        {
+            if (CanBeEjectedOnDamage)
+            {
+                NativeFunction.Natives.TASK_LEAVE_ANY_VEHICLE(MyPed.Pedestrian, 0, 4096);
+            }
+            EntryPoint.WriteToConsole($"HEALTHSTATE: RAGDOLL 3 {MyPed.Pedestrian.Handle} Health - NewHealth = {HealthDamage} NewHealth {HealthDamage} Health {Health} MyPed.Pedestrian.Health {MyPed.Pedestrian.Health}", 5);
+            NativeFunction.CallByName<bool>("SET_PED_TO_RAGDOLL", MyPed.Pedestrian, LowRagdollMinTime, LowRagdollMaxTime, 1, false, false, false);
+        }
+        else if (HealthDamage >= TinyRagdollDamageMinimum && RandomItems.RandomPercent(TinyRagdollDamagePercentage)) //10 && RandomItems.RandomPercent(1))
+        {
+            if (CanBeEjectedOnDamage)
+            {
+                NativeFunction.Natives.TASK_LEAVE_ANY_VEHICLE(MyPed.Pedestrian, 0, 4096);
+            }
+            EntryPoint.WriteToConsole($"HEALTHSTATE: RAGDOLL 4 {MyPed.Pedestrian.Handle} Health - NewHealth = {HealthDamage} NewHealth {HealthDamage} Health {Health} MyPed.Pedestrian.Health {MyPed.Pedestrian.Health}", 5);
+            NativeFunction.CallByName<bool>("SET_PED_TO_RAGDOLL", MyPed.Pedestrian, TinyRagdollMinTime, TinyRagdollMaxTime, 1, false, false, false);
+        }
+
+
+    }
+
+
+    private void SetBleed(int HealthDamage)
+    {
+        if (!AllowBleeding)
+        {
+            return;
+        }
+        if (IsBleeding)
+        {
+            return;
+        }
+        EntryPoint.WriteToConsole($"HealthDiff:{HealthDamage}");
+        if (HealthDamage >= BleedingMinDamageRequirement && RandomItems.RandomPercent(BleedingPercentage))
+        {
+            IsBleeding = true;
+            if (HealthDamage <= BleedingLightDamageAmount)// 10)
+            {
+                CurrentBleedSeverity = BleedSeverity.Light;
+            }
+            else if (HealthDamage <= BleedingMediumDamageAmount) //20)
+            {
+                CurrentBleedSeverity = BleedSeverity.Medium;
+            }
+            else if (HealthDamage <= BleedingHeavyDamageAmount) //50)
+            {
+                CurrentBleedSeverity = BleedSeverity.Heavy;
+            }
+            else
+            {
+                CurrentBleedSeverity = BleedSeverity.Full;
+            }
+            GameTimeBetweenBleeds = RandomItems.GetRandomNumber(MinGameTimeBetweenBleeds, MaxGameTimeBetweenBleeds);
+            //EntryPoint.WriteToConsole($"{IsPlayer} {MyPed.Handle} STARTED BLEEDING {GameTimeBetweenBleeds}");
+        }
+    }
+    private void UpdateBleeding()
+    {
+        if (!IsBleeding)
+        {
+            return;
+        }
+        if (!BleedDamageTime)
+        {
+            return;
+        }
+        if (RandomItems.RandomPercent(BleedingStopPercentage))
+        {
+            IsBleeding = false;
+            EntryPoint.WriteToConsole($"{IsPlayer} {MyPed.Handle} STOPPED BLEEDING RANDOMLY< WE GOT A CLOTTER");
+            return;
+
+        }
+        GameTimeLastBled = Game.GameTime;
+
+        if(IsPlayer)
+        {
+            Player.HealthManager.ChangeHealth(-1 * HealthLostEachBleed);
+        }
+        else
+        {
+            MyPed.Pedestrian.Health -= HealthLostEachBleed;
+        }
+        
+        if (AllowBloodTrails)//(IsPlayer && Settings.SettingsManager.DamageSettings.AllowBloodTrailsPlayer) || (!IsPlayer && Settings.SettingsManager.DamageSettings.AllowBloodTrailsAI))
+        {
+            AddBloodDrip();
+        }
+        EntryPoint.WriteToConsole($"{IsPlayer} {MyPed.Handle} STOPPED BLEEDING ");
+    }
+    private void AddBloodDrip()
+    {
+        float amount;
+
+        if (CurrentBleedSeverity == BleedSeverity.Light)
+        {
+            amount = RandomItems.GetRandomNumber(5f, 20f);
+        }
+        else if (CurrentBleedSeverity == BleedSeverity.Medium)
+        {
+            amount = RandomItems.GetRandomNumber(20f, 40f);
+        }
+        else if (CurrentBleedSeverity == BleedSeverity.Heavy)
+        {
+            amount = RandomItems.GetRandomNumber(30f, 60f);
+        }
+        else
+        {
+            amount = RandomItems.GetRandomNumber(50f, 100f);
+        }
+        float width = 0.25f + (amount / 100f);//Change this formula to adjust the size of the decal
+        float height = 0.25f + (amount / 100f);// Change this formula to adjust the size of the decal
+
+        int decalType = 1110;
+        if (RandomItems.RandomPercent(40f) && (CurrentBleedSeverity == BleedSeverity.Light || CurrentBleedSeverity == BleedSeverity.Medium))
+        {
+            decalType = 1015;
+        }
+        NativeHelper.AddDecal(MyPed.Position, decalType, width, height, 0.3f, 0.0f, 0.0f, 1.0f, 20f);
+
+
+        //uint RemovalTime = 60000;
+        //int decalID = NativeFunction.Natives.ADD_DECAL<int>(
+        //    1110,
+        //    coords, 
+        //    0.0f, 0.0f, -1.0f,
+        //    0.0f, 1.0f, 0.0f, 
+        //    width, height, 
+        //    0.3f, 0.0f, 0.0f, 1.0f, 
+        //    RemovalTime, 
+        //    false, false, false);
+        //ADD_DECAL (DECAL_RENDERSETTING_ID
+        //renderSettingsId,
+        //VECTOR pos,
+        //VECTOR dir,
+        //VECTOR side,
+        //FLOAT width, FLOAT height,
+        //FLOAT colR, FLOAT colG, FLOAT colB, FLOAT colA,
+        //FLOAT life,
+        //BOOL isLongRange=false,
+        //BOOL isDynamic=false,
+        //BOOL useComplexColn=false) = "0x20f895e512ec5db6"
+
+        //BloodDecals.Add(decalID);
+    }
+    public void StopBleeding()
+    {
+        if(!IsBleeding)
+        {
+            return;
+        }
+        IsBleeding = false;
+        EntryPoint.WriteToConsole($"{IsPlayer} {MyPed.Handle} STOPPED BLEEDING FROM SOMETHING");
+    }
+    private enum BleedSeverity
+    {
+        None,
+        Light,
+        Medium,
+        Heavy,
+        Full,
+    }
 }

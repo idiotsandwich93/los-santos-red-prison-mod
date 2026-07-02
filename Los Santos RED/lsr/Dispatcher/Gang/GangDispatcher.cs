@@ -266,20 +266,26 @@ public class GangDispatcher
             //EntryPoint.WriteToConsole("Assault Spawn failed no den or gang");
             return;
         }
-       // EntryPoint.WriteToConsole($"Assault Spawn Picked {closestDen.AssociatedGang.ShortName}");
-        if (closestDen.TotalAssaultSpawns >= closestDen.MaxAssaultSpawns)
+        // EntryPoint.WriteToConsole($"Assault Spawn Picked {closestDen.AssociatedGang.ShortName}");
+
+        bool isAtWarWithGang = Player.GangTerritoryManager.IsAtWarWith(closestDen.AssociatedGang) || Player.GangTerritoryManager.IsDoingRetaliation(closestDen.AssociatedGang);
+
+        if (!isAtWarWithGang)//could only spawn till you win? meh just end the war and let it ride
         {
-           // EntryPoint.WriteToConsole("Assault Spawn failed too many spawns already");
-            return;
-        }
-        if (World.Pedestrians.GangMemberList.Count(x => x.Gang?.ID == closestDen.AssociatedGang.ID) >= closestDen.AssociatedGang.SpawnLimit)
-        {
-            //EntryPoint.WriteToConsole("Assault Spawn failed TOO MANY GANG MEMBERS");
-            return;
+            if (closestDen.TotalAssaultSpawns >= closestDen.MaxAssaultSpawns)
+            {
+                // EntryPoint.WriteToConsole("Assault Spawn failed too many spawns already");
+                return;
+            }
+            if (World.Pedestrians.GangMemberList.Count(x => x.Gang?.ID == closestDen.AssociatedGang.ID) >= closestDen.AssociatedGang.SpawnLimit)
+            {
+                //EntryPoint.WriteToConsole("Assault Spawn failed TOO MANY GANG MEMBERS");
+                return;
+            }
         }
         //GangReputation gr = Player.RelationshipManager.GangRelationships.GetReputation(closestDen.AssociatedGang);
 
-        bool shouldAttack = Player.Violations.WeaponViolations.ShotSomewhatRecently || RecentlyAttacked;
+        bool shouldAttack = Player.Violations.WeaponViolations.ShotSomewhatRecently || RecentlyAttacked || isAtWarWithGang;
         if (!shouldAttack)
         {
             //EntryPoint.WriteToConsole("Assault Spawn failed havent recently attacked or shot");
@@ -418,11 +424,12 @@ public class GangDispatcher
 
     private void HandleHitSquadSpawns()
     {
+        bool isGangWarActive = Player.GangTerritoryManager.IsAtWarWithAnyGang() || Player.GangTerritoryManager.IsAnyGangRetaliating();
         if (!Settings.SettingsManager.GangSettings.AllowHitSquads || !IsTimeToDispatchHitSquad)
         {
             return;
         }
-        if(Player.IsWanted)
+        if(Player.IsWanted && !isGangWarActive)
         {
             return;
         }
@@ -434,6 +441,18 @@ public class GangDispatcher
         else
         {
             EnemyGang = Player.RelationshipManager.GangRelationships.HitSquadGangs?.PickRandom();
+        }
+        if(isGangWarActive)
+        {
+            Gang WarGang = Player.GangTerritoryManager.GangWars.FirstOrDefault(x => !x.IsWarEnded && x.TargetGang != null)?.TargetGang;
+            if(WarGang == null)
+            {
+                WarGang = Player.GangTerritoryManager.Retaliations.FirstOrDefault(x => !x.IsEnded && x.TargetGang != null)?.TargetGang;
+            }
+            if(WarGang != null)
+            {
+                EnemyGang = WarGang;
+            }
         }
         DispatchHitSquad(EnemyGang, false);
         TimeBetweenHitSquads = RandomItems.GetRandomNumber(Settings.SettingsManager.GangSettings.MinTimeBetweenHitSquads, Settings.SettingsManager.GangSettings.MaxTimeBetweenHitSquads);

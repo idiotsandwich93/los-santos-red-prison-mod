@@ -2096,8 +2096,14 @@ public class PlacesOfInterest : IPlacesOfInterest
                     new AppearPercentage(21,75),
                     new AppearPercentage(22,75),
                     new AppearPercentage(23,85),
-                }
-
+                },
+                PossiblePedSpawns = new List<ConditionalLocation>() {
+                    new ConditionalLocation(new Vector3(-367.4739f, 193.3855f, 83.65652f), 90.30809f,0f),
+                    new ConditionalLocation(new Vector3(-419.4157f, 155.2768f, 85.04705f), 344.3392f, 0f),
+                    new ConditionalLocation(new Vector3(-378.208f, 168.3972f, 85.04848f), 40.70549f, 0f),
+                    new ConditionalLocation(new Vector3(-433.6894f, 167.31f, 78.07529f), 44.99583f, 0f),
+                    new ConditionalLocation(new Vector3(-460.4812f, 168.7315f, 78.07529f), 351.9265f, 0f),
+                    new ConditionalLocation(new Vector3(-457.543f, 193.7121f, 75.23978f), 169.4222f, 0f), }
 
             },
 
@@ -2131,7 +2137,13 @@ public class PlacesOfInterest : IPlacesOfInterest
                     new AppearPercentage(21,75),
                     new AppearPercentage(22,75),
                     new AppearPercentage(23,85),
-                }
+                },
+                PossiblePedSpawns = new List<ConditionalLocation>() {
+                    new ConditionalLocation(new Vector3(-1580.404f, -451.6075f, 48.70359f), 319.8292f,0f),
+                    new ConditionalLocation(new Vector3(-1576.618f, -453.8674f, 48.70488f), 327.1202f, 0f),
+                    new ConditionalLocation(new Vector3(-1581.422f, -436.1399f, 43.90352f), 204.4699f, 0f),
+                    new ConditionalLocation(new Vector3(-1557.438f, -440.4233f, 47.37077f), 30.96553f, 0f),
+                    new ConditionalLocation(new Vector3(-1556.142f, -398.86f, 41.98772f), 216.0984f, 0f), }
 
 
             },
@@ -2165,7 +2177,13 @@ public class PlacesOfInterest : IPlacesOfInterest
                     new AppearPercentage(21,75),
                     new AppearPercentage(22,75),
                     new AppearPercentage(23,85),
-                }
+                },
+                PossiblePedSpawns = new List<ConditionalLocation>() {
+                    new ConditionalLocation(new Vector3(710.23f, -625.0277f, 27.47759f), 236.707f,0f),
+                    new ConditionalLocation(new Vector3(695.8276f, -643.2592f, 26.30715f), 292.372f, 0f),
+                    new ConditionalLocation(new Vector3(711.4447f, -674.2034f, 26.94142f), 314.6776f, 0f),
+                    new ConditionalLocation(new Vector3(707.0568f, -658.683f, 32.4765f), 253.2937f, 0f),
+                    new ConditionalLocation(new Vector3(732.6047f, -678.1924f, 37.2571f), 0f, 0f), }
 
 
             },
@@ -2199,7 +2217,15 @@ public class PlacesOfInterest : IPlacesOfInterest
                     new AppearPercentage(21,75),
                     new AppearPercentage(22,75),
                     new AppearPercentage(23,85),
-                }
+                },
+                PossiblePedSpawns = new List<ConditionalLocation>() {
+                    new ConditionalLocation(new Vector3(1553.044f, 3631.833f, 35.13237f), 96.83964f,0f),
+                    new ConditionalLocation(new Vector3(1567.646f, 3596.965f, 35.35622f), 132.0851f, 0f),
+                    new ConditionalLocation(new Vector3(1559.413f, 3609.653f, 38.80232f), 118.883f, 0f),
+                    new ConditionalLocation(new Vector3(1534.833f, 3591.404f, 38.7665f), 38.9276f, 0f),
+                    new ConditionalLocation(new Vector3(1537.266f, 3580.14f, 38.73154f), 205.6617f, 0f),
+                    new ConditionalLocation(new Vector3(1511.643f, 3574.67f, 38.73648f), 29.92882f, 0f),
+                    new ConditionalLocation(new Vector3(1505.031f, 3575.515f, 35.43495f), 16.3294f, 0f), }
 
 
             },
@@ -2232,7 +2258,13 @@ public class PlacesOfInterest : IPlacesOfInterest
                     new AppearPercentage(21,75),
                     new AppearPercentage(22,75),
                     new AppearPercentage(23,85),
-                }
+                },
+                PossiblePedSpawns = new List<ConditionalLocation>() {
+                    new ConditionalLocation(new Vector3(-50.55559f, 6438.076f, 40.37756f), 300.6061f,0f),
+                    new ConditionalLocation(new Vector3(-58.55237f, 6447.396f, 40.37756f), 274.0475f, 0f),
+                    new ConditionalLocation(new Vector3(-38.00097f, 6469.404f, 35.40913f), 228.3165f, 0f),
+                    new ConditionalLocation(new Vector3(-11.94416f, 6478.693f, 31.45957f), 188.2354f, 0f),
+                    new ConditionalLocation(new Vector3(14.13199f, 6503.866f, 31.49215f), 239.9304f, 0f), }
 
 
             },
@@ -2309,8 +2341,12 @@ public class PlacesOfInterest : IPlacesOfInterest
                 CameraPosition = new Vector3(1559.219f, 3781.481f, 40.93672f),
                 CameraDirection = new Vector3(-0.9409853f, 0.2641553f, -0.2115861f),
                 CameraRotation = new Rotator(-12.21532f, 1.222972E-05f, 74.3194f),
-                SupportedTracks = new List<string>() { "sandyloop1", "sandyloop2" },
-                MaxBax = 3000,
+                SupportedTracks = new List<string>() 
+                { 
+                    "alamo_sea1","sandyloop1", "sandyloop2","shadya2btrack1","grapeseed_loop","grapseedrev", "grapeseed_loop2", "prisonrun","prisonrun2", "sandymile", "hookiespipeline","grapep2ptwo","grapeseed_p2p","grapestab",
+                    "sandyobservatorySprint", "sandykortzSprint", "sandystabCitySprint", "sandyvinewoodSprint", "sandyelysianSprint", "sandypowerStationSprint", "sandylsiaSprint", "sandymazeBankSprint", "sandyPuertoDelSolSprint", "sandyDelPerroSprint",                  
+                },
+                MaxBax = 2000,
                 OpenTime = 0,
                 CloseTime = 24,
                 AllowedOpponentGroups = new List<string>() {"MuscleCars_Racing","Buffalo_Racing","Gauntlet_Racing","Vigero_Racing","Dominator_Racing","OtherMuscle_Racing" },
@@ -2320,16 +2356,57 @@ public class PlacesOfInterest : IPlacesOfInterest
                 CameraPosition = new Vector3(142.2736f, 6626.222f, 39.35808f),
                 CameraDirection = new Vector3(-0.9640946f, 0.09018292f, -0.2497771f),
                 CameraRotation = new Rotator(-14.46432f, 4.959682E-06f, 84.65601f),
-                SupportedTracks = new List<string>() { "paletoloop1", "paletoloop2","paletodrag1" },
+                SupportedTracks = new List<string>() { "paletoloop1", "paletoloop2","paletodrag1", "paletop2p","paletoquarter",
+                    "paletoobservatorySprint", "paletokortzSprint", "paletostabCitySprint", "paletovinewoodSprint", "paletoelysianSprint", "paletopowerStationSprint", "paletolsiaSprint", "paletomazeBankSprint", "paletoPuertoDelSolSprint" },
                 OpenTime = 0,
                 CloseTime = 24,
-                MaxBax = 5000,
+                MaxBax = 2000,
             },
-            new RaceMeetup(new Vector3(722.977f, -1069.407f, 23.0624f), 90.35049f, "La Mesa Race Meetup", "Largest meetup group in LS. Access to all the tracks","")
+            new RaceMeetup(new Vector3(722.977f, -1069.407f, 23.0624f), 90.35049f, "La Mesa Race Meetup", "Largest meetup group in LS. Access to all city tracks","")
             {
                 OpenTime = 0,
                 CloseTime = 24,
-                MaxBax = 7000,
+                MaxBax = 2000,
+                SupportedTracks = new List<string>() 
+                { 
+                //Vinewood Tracks
+                    "citycircuit1", "observortyminiloop", "lakevinewood", "Vinewoodhills2", "vinewoodquarter", "vinewoodRace1", "vinewoodRace2", "vinewoodRace3", "Vinewoodhills2","vinewoodguantlet",
+
+                //Central Tracks
+                    "lsairport","cypressflat1", "hoodrun", "delperroloop", "eastsideCircuit", "ely_freeloop", "centralRace3", "freeway", "mirrorpark", "mirrorparkrev", "southlossantos", "vespCanals", "welcometols", "welcometolsshort",
+                    "centralRace2", "ely_freeway", "freewaydrag", "popDrag","south_shambles_st","mesabridges","missionrow","rockydelperro","lsia_loop",
+                    "fleecarun", "ElBurroPoint", "centralRace1", "sustanciasprint", "greatoceanhighway", "roadtoHarmony", "richman_road","Downtown1","strawberrylsia","midtown1","midtown2","occupaveQuartermile","roadrunner1",
+                    "tongva_hills","tongva_hills_long","tongva_hills_rev",
+
+
+                    "observatorySprint", "kortzSprint", "stabCitySprint", "vinewoodSprint", "elysianSprint", "powerStationSprint", "lsiaSprint", "mazeBankSprint", "PuertoDelSolSprint" , "delPerroSprint",
+                  
+
+                },
+            },
+
+            new RaceMeetup(new Vector3(-702.4859f, 5790.059f, 17.52181f), 68.87421f, "Off-Road World", "Take on Off-Road Challenges","")
+            {
+                OpenTime = 0,
+                CloseTime = 24,
+                BannerImagePath = "stores\\paletooffroader.png",
+                MaxBax = 2000,
+                AllowedOpponentGroups = new List<string>() { "OffRoad_Racing",  "4x4OffRoad_Racing", "OffRoadMotorcycles_Racing", "ATV_Racing", "ATVvsMOTO_Racing", "Buggy_Racing", "MotoX_Racing", "RallyCars_Racing", "TrophyTruck_Racing" },
+                SupportedTracks = new List<string>() 
+                {
+                    "chillstatewildernessloop", "landactresoviorcircuit", "paletocove", "procopio_beach", "sandyoffroaddrag", "canyon_cliffs", "canyoncliffs2", "chiliad_trail1", "grandsenoratrail1", "landactresoviorroute1", "landactresoviorroute2",
+                    "minewardspiral", "minewardspiral2", "raton_canyon", "raton_canyon2", "ratontolumbermill", "ridge_run", "ridge_run2", "ronswindfarm1", "ronswindfarm2", "valley_trail", "valley_trail2", "zancudotrailshort", "zancudorivertrail1"
+                },
+            },
+            //Redwood Lights Track
+            new RaceMeetup(new Vector3(1129.083f, 2125.018f, 55.5462f), 269.9457f, "RedWood Lights Moto X", "Test Your Skills","")
+            {
+                OpenTime = 0,
+                CloseTime = 24,
+                BannerImagePath = "stores\\redlmotox.png",
+                MaxBax = 850,
+                AllowedOpponentGroups = new List<string>() {"MotoX_Racing" },
+                SupportedTracks = new List<string>() { "redwoodlights" },
             },
         };
     }
@@ -2339,13 +2416,13 @@ public class PlacesOfInterest : IPlacesOfInterest
         {
             new Bar(new Vector3(224.5178f, 336.3819f, 105.5973f), 340.0694f, "Pitchers", "","BarMenu") { OpenTime = 0, CloseTime = 24 } ,
             new Bar(new Vector3(219.5508f, 304.9488f, 105.5861f), 250.1051f, "Singletons", "","BarMenu") { OpenTime = 0, CloseTime = 24 } ,
-            new Bar(new Vector3(1982.979f, 3053.596f, 47.21508f), 226.3188f, "Yellow Jacket Inn", "","BarMenu") { VendorFightPercentage = 45f,VendorFightPolicePercentage = 10f, OpenTime = 0, CloseTime = 24,VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(1982.979f, 3053.596f, 47.21508f), 226.3188f) }, ScannerFilePath = "01_specific_location\\0x02C36B8B.mp3",VendorPersonnelID = "BarPeds",  },
+            new Bar(new Vector3(1982.979f, 3053.596f, 47.21508f), 226.3188f, "Yellow Jacket Inn", "","BarMenu") { ActivateDistance = 75f, VendorFightPercentage = 45f,VendorFightPolicePercentage = 10f, OpenTime = 0, CloseTime = 24,VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(1982.979f, 3053.596f, 47.21508f), 226.3188f) }, ScannerFilePath = "01_specific_location\\0x02C36B8B.mp3",VendorPersonnelID = "BarPeds",  },
             new Bar(new Vector3(-262.8396f, 6291.08f, 31.49327f), 222.9271f, "The Bay Bar", "","BarMenu") { OpenTime = 0, CloseTime = 24 } ,
             new Bar(new Vector3(-576.9105f, 239.0964f, 82.63644f), 354.0043f, "The Last Resort", "","BarMenu") { OpenTime = 0, CloseTime = 24 } ,
             new Bar(new Vector3(255.3016f, -1013.603f, 29.26964f), 70.28053f, "Shenanigan's Bar", "","BarMenu") { OpenTime = 0, CloseTime = 24 } ,
             new Bar(new Vector3(1218.175f, -416.5078f, 67.78294f), 74.95883f, "Mirror Park Tavern", "","BarMenu") { OpenTime = 0, CloseTime = 24 } ,
-            new Bar(new Vector3(-1388.5f, -586.6741f, 30.21859f), 31.53231f, "Bahama Mama's", "","BarMenu") { OpenTime = 0, CloseTime = 24,VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(-1391.372f, -605.995f, 30.31955f), 116.404f) }, InteriorID = 107778, VendorPersonnelID = "BarPeds", },//TeleportEnterPosition = new Vector3(-1387.984f, -587.4419f, 30.31951f), TeleportEnterHeading = 210.6985f,
-            new Bar(new Vector3(-564.6519f, 276.2436f, 83.12064f), 175.5771f,"Tequila-La", "","BarMenu") { VendorFightPercentage =  25f,VendorFightPolicePercentage = 10f, OpenTime = 0, CloseTime = 24,VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(-561.9947f, 284.9062f, 82.17636f), 262.2369f) }, InteriorID = 72706, VendorPersonnelID = "BarPeds", },//need better coordinates
+            new Bar(new Vector3(-1388.5f, -586.6741f, 30.21859f), 31.53231f, "Bahama Mama's", "","BarMenu") {ActivateDistance = 75f,  OpenTime = 0, CloseTime = 24,VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(-1391.372f, -605.995f, 30.31955f), 116.404f) }, InteriorID = 107778, VendorPersonnelID = "BarPeds", },//TeleportEnterPosition = new Vector3(-1387.984f, -587.4419f, 30.31951f), TeleportEnterHeading = 210.6985f,
+            new Bar(new Vector3(-564.6519f, 276.2436f, 83.12064f), 175.5771f,"Tequila-La", "","BarMenu") {ActivateDistance = 75f,  VendorFightPercentage =  25f,VendorFightPolicePercentage = 10f, OpenTime = 0, CloseTime = 24,VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(-561.9947f, 284.9062f, 82.17636f), 262.2369f) }, InteriorID = 72706, VendorPersonnelID = "BarPeds", },//need better coordinates
             new Bar(new Vector3(-2193.238f, 4290.112f, 49.17442f), 37.55579f, "Hookies", "","BarMenu") { OpenTime = 0, CloseTime = 24 } ,
 
             //// Mansion Bar
@@ -2358,17 +2435,17 @@ public class PlacesOfInterest : IPlacesOfInterest
     {
         GasStations = new List<GasStation>()
         {
-            new GasStation(new Vector3(-711.9264f, -917.7573f, 19.21472f), 180.3014f, "LtD", "unLTD great prices!","LTDMenu"){ BannerImagePath = "stores\\ltd.png",VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(-705.7453f, -913.6598f, 19.21559f), 83.75771f) },OpenTime = 0, CloseTime = 24, InteriorID = 47874 },
-            new GasStation(new Vector3(1698.097f, 4929.837f, 42.0781f), 48.2484f, "LtD", "unLTD great prices!","LTDMenu"){ BannerImagePath = "stores\\ltd.png",VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(1698.044f, 4922.526f, 42.06367f), 314.3236f) },OpenTime = 0, CloseTime = 24, InteriorID = 45570 },
+            new GasStation(new Vector3(-711.9264f, -917.7573f, 19.21472f), 180.3014f, "LtD", "unLTD great prices!","LTDMenu"){ ActivateDistance = 75f, BannerImagePath = "stores\\ltd.png",VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(-705.7453f, -913.6598f, 19.21559f), 83.75771f) },OpenTime = 0, CloseTime = 24, InteriorID = 47874 },
+            new GasStation(new Vector3(1698.097f, 4929.837f, 42.0781f), 48.2484f, "LtD", "unLTD great prices!","LTDMenu"){ ActivateDistance = 75f, BannerImagePath = "stores\\ltd.png",VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(1698.044f, 4922.526f, 42.06367f), 314.3236f) },OpenTime = 0, CloseTime = 24, InteriorID = 45570 },
 
 
 
             //BROKEN VENDOR POS?//new GasStation(new Vector3(1159.861f, -327.4188f, 69.21286f), 188.791f, "LtD","unLTD great prices!","LTDMenu"){ BannerImagePath = "stores\\ltd.png",VendorPosition = new Vector3(1164.927f, -323.7075f, 69.2051f), VendorHeading = 90.6181f, OpenTime = 0, CloseTime = 24, InteriorID = 2050 },
-            new GasStation(new Vector3(1159.861f, -327.4188f, 69.21286f), 188.791f, "LtD","unLTD great prices!","LTDMenu"){ BannerImagePath = "stores\\ltd.png",VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(1165.12f, -322.5843f, 68.80514f), 98.88105f) },OpenTime = 0, CloseTime = 24, InteriorID = 2050, },
+            new GasStation(new Vector3(1159.861f, -327.4188f, 69.21286f), 188.791f, "LtD","unLTD great prices!","LTDMenu"){ ActivateDistance = 75f, BannerImagePath = "stores\\ltd.png",VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(1165.12f, -322.5843f, 68.80514f), 98.88105f) },OpenTime = 0, CloseTime = 24, InteriorID = 2050, },
 
 
 
-            new GasStation(new Vector3(-1817.871f,787.0063f,137.917f), 89.38248f, "LtD","unLTD great prices!","LTDMenu"){ BannerImagePath = "stores\\ltd.png",OpenTime = 0, CloseTime = 24, InteriorID = 82178,VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(-1819.707f, 794.1723f, 138.0823f),122.8981f) },   },
+            new GasStation(new Vector3(-1817.871f,787.0063f,137.917f), 89.38248f, "LtD","unLTD great prices!","LTDMenu"){ ActivateDistance = 75f, BannerImagePath = "stores\\ltd.png",OpenTime = 0, CloseTime = 24, InteriorID = 82178,VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(-1819.707f, 794.1723f, 138.0823f),122.8981f) },   },
             //new Vector3(1165.405f, -323.4462f, 69.20515f)
             new GasStation(new Vector3(166.2001f, -1553.691f, 29.26175f), 218.9514f, "Ron", "Put RON in your tank","RonMenu") {  BannerImagePath = "stores\\ron.png",OpenTime = 4, CloseTime = 22, ScannerFilePath = "01_specific_location\\0x0D6F777B.mp3", CameraPosition = new Vector3(175.2995f, -1593.878f, 39.27175f), CameraDirection = new Vector3(-0.1031758f, 0.9726905f, -0.2079136f), CameraRotation = new Rotator(-12.00011f, 0f, 6.054868f) },
             new GasStation(new Vector3(-1427.998f, -268.4702f, 46.2217f), 132.4002f, "Ron", "Put RON in your tank","RonMenu"){ BannerImagePath = "stores\\ron.png",OpenTime = 4, CloseTime = 22, ScannerFilePath = "01_specific_location\\0x056AF0EC.mp3" },
@@ -2405,11 +2482,11 @@ public class PlacesOfInterest : IPlacesOfInterest
     {
         LiquorStores = new List<LiquorStore>()
         {
-            new LiquorStore(new Vector3(-1226.09f, -896.166f, 12.4057f), 22.23846f, "Rob's Liquors","Thats My Name, Don't Rob Me!","LiquorStoreMenu") { VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(-1221.119f, -908.5667f, 12.32635f),33.35855f) },OpenTime = 4, CloseTime = 22, InteriorID = 50178 },
-            new LiquorStore(new Vector3(-2974.098f, 390.9085f, 15.03413f), 84.05217f, "Rob's Liquors", "Thats My Name, Don't Rob Me!","LiquorStoreMenu"){ VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(-2966.361f, 390.1463f, 15.04331f), 88.73301f) },OpenTime = 4, CloseTime = 22, InteriorID = 19202 },
-            new LiquorStore(new Vector3(-1491.638f, -384.0242f, 40.08308f), 136.3043f, "Rob's Liquors", "Thats My Name, Don't Rob Me!","LiquorStoreMenu") { VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(-1486.196f, -377.7115f, 40.16343f), 133.357f) },OpenTime = 4, CloseTime = 22, InteriorID = 98818 },
-            new LiquorStore(new Vector3(1141.463f, -980.9073f, 46.41084f), 275.826f,"Rob's Liquors", "Thats My Name, Don't Rob Me!","LiquorStoreMenu"){ VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(1133.534f, -983.1248f, 46.41584f), 276.1162f) },OpenTime = 4, CloseTime = 22, InteriorID = 73986 },
-            new LiquorStore(new Vector3(1166.318f, 2702.173f, 38.17925f), 175.7192f, "Scoops Liquor Barn", "We've got the scoop on booze","LiquorStoreMenu"){ VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(1165.581f, 2710.774f, 38.15771f), 176.1093f) },OpenTime = 4, CloseTime = 22, InteriorID = 33026 },
+            new LiquorStore(new Vector3(-1226.09f, -896.166f, 12.4057f), 22.23846f, "Rob's Liquors","Thats My Name, Don't Rob Me!","LiquorStoreMenu") { ActivateDistance = 75f, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(-1221.119f, -908.5667f, 12.32635f),33.35855f) },OpenTime = 4, CloseTime = 22, InteriorID = 50178 },
+            new LiquorStore(new Vector3(-2974.098f, 390.9085f, 15.03413f), 84.05217f, "Rob's Liquors", "Thats My Name, Don't Rob Me!","LiquorStoreMenu"){ ActivateDistance = 75f, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(-2966.361f, 390.1463f, 15.04331f), 88.73301f) },OpenTime = 4, CloseTime = 22, InteriorID = 19202 },
+            new LiquorStore(new Vector3(-1491.638f, -384.0242f, 40.08308f), 136.3043f, "Rob's Liquors", "Thats My Name, Don't Rob Me!","LiquorStoreMenu") { ActivateDistance = 75f, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(-1486.196f, -377.7115f, 40.16343f), 133.357f) },OpenTime = 4, CloseTime = 22, InteriorID = 98818 },
+            new LiquorStore(new Vector3(1141.463f, -980.9073f, 46.41084f), 275.826f,"Rob's Liquors", "Thats My Name, Don't Rob Me!","LiquorStoreMenu"){ ActivateDistance = 75f, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(1133.534f, -983.1248f, 46.41584f), 276.1162f) },OpenTime = 4, CloseTime = 22, InteriorID = 73986 },
+            new LiquorStore(new Vector3(1166.318f, 2702.173f, 38.17925f), 175.7192f, "Scoops Liquor Barn", "We've got the scoop on booze","LiquorStoreMenu"){ ActivateDistance = 75f, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(1165.581f, 2710.774f, 38.15771f), 176.1093f) },OpenTime = 4, CloseTime = 22, InteriorID = 33026 },
             new LiquorStore(new Vector3(-596.1056f, 277.69f, 82.16035f), 170.2155f, "Eclipse Liquor.Deli", "You'll be seeing a real blackout","LiquorStoreMenu") ,
             new LiquorStore(new Vector3(-239.7314f, 244.0006f, 92.03992f), 318.9458f, "Ellen's Liquor Lover", "Generous Liquor","LiquorStoreMenu") ,
             new LiquorStore(new Vector3(807.3504f, -1073.531f, 28.92093f), 134.3175f, "Liquor Market", "","LiquorStoreMenu") ,
@@ -2421,7 +2498,7 @@ public class PlacesOfInterest : IPlacesOfInterest
             new LiquorStore(new Vector3(-882.7062f, -1155.351f, 5.162508f), 215.8305f, "Liquor Hole", "You know you want it!","LiquorStoreMenu") { OpenTime = 4, CloseTime = 22,BannerImagePath = "stores\\liquorhole.png" },
             new LiquorStore(new Vector3(-601.9684f, 244.0188f, 82.3046f), 358.6468f, "Liquor Hole", "You know you want it!","LiquorStoreMenu") { OpenTime = 4, CloseTime = 22,BannerImagePath = "stores\\liquorhole.png" },
             new LiquorStore(new Vector3(456.5478f, 130.5207f, 99.28537f), 162.9724f, "Vinewood Liquor", "","LiquorStoreMenu") { OpenTime = 4, CloseTime = 22 },
-            new LiquorStore(new Vector3(1391.861f, 3606.275f, 34.98093f), 199.2899f, "Liquor Ace", "Now socially acceptable", "LiquorStoreMenu") { InteriorID = 104450, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(1391.861f, 3606.275f, 34.98093f), 199.2899f) }, OpenTime = 4, CloseTime = 22, ScannerFilePath  = "01_specific_location\\0x1A23351D.mp3" },
+            new LiquorStore(new Vector3(1391.861f, 3606.275f, 34.98093f), 199.2899f, "Liquor Ace", "Now socially acceptable", "LiquorStoreMenu") {ActivateDistance = 75f,  InteriorID = 104450, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(1391.861f, 3606.275f, 34.98093f), 199.2899f) }, OpenTime = 4, CloseTime = 22, ScannerFilePath  = "01_specific_location\\0x1A23351D.mp3" },
             new LiquorStore(new Vector3(1952.552f, 3840.833f, 32.17612f), 298.8575f, "Sandy Shores Liquor", "","LiquorStoreMenu") { OpenTime = 4, CloseTime = 22 },
             new LiquorStore(new Vector3(2455.443f, 4058.518f, 38.06472f), 250.6311f, "Liquor Market 24/7", "","LiquorStoreMenu"){ OpenTime = 0, CloseTime = 24 },
             new LiquorStore(new Vector3(2481.348f, 4100.31f, 38.13171f), 249.6295f, "Liquor Store", "","LiquorStoreMenu"){ OpenTime = 4, CloseTime = 22 },
@@ -2445,16 +2522,16 @@ public class PlacesOfInterest : IPlacesOfInterest
     {
         ConvenienceStores = new List<ConvenienceStore>()
         {
-            new ConvenienceStore(new Vector3(547f, 2678f, 42.1565f), 22.23846f,  "24/7","As fast as you","TwentyFourSevenMenu"){ OpenTime = 0, CloseTime = 24,BannerImagePath = "stores\\247.png", InteriorID = 41474, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(549.6005f, 2669.846f, 42.1565f), 96.91093f) },},
-            new ConvenienceStore(new Vector3(-3236.767f,1005.609f,12.33137f), 122.6316f,  "24/7","As fast as you","TwentyFourSevenMenu"){ OpenTime = 0, CloseTime = 24,BannerImagePath = "stores\\247.png", InteriorID = 16386, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(-3243.302f, 1000.005f, 12.83071f), 352.6259f) }, },
-            new ConvenienceStore(new Vector3(2560f, 385f, 108f), 22.23846f,  "24/7","As fast as you","TwentyFourSevenMenu"){ OpenTime = 0, CloseTime = 24,BannerImagePath = "stores\\247.png", InteriorID = 62722, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(2555.339f, 380.9034f, 108.6229f), 347.3629f) }, },
-            new ConvenienceStore(new Vector3(29.32254f, -1350.485f, 29.33319f), 170.9901f,  "24/7", "As fast as you","TwentyFourSevenMenu"){ OpenTime = 0, CloseTime = 24,BannerImagePath = "stores\\247.png", InteriorID = 33282, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(24.39647f, -1345.484f, 29.49702f), 252.9084f) }, },
-            new ConvenienceStore(new Vector3(-3037.729f, 589.7671f, 7.814812f), 289.0175f,  "24/7", "As fast as you","TwentyFourSevenMenu"){ OpenTime = 0, CloseTime = 24,BannerImagePath = "stores\\247.png", InteriorID = 97538, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(-3039.787f, 584.1979f, 7.908929f), 12.80189f) }, },
-            new ConvenienceStore(new Vector3(376.3202f, 322.694f, 103.4389f), 162.5363f,  "24/7", "As fast as you","TwentyFourSevenMenu"){ OpenTime = 0, CloseTime = 24,BannerImagePath = "stores\\247.png", InteriorID = 46850, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(372.6485f, 327.0293f, 103.5664f), 257.6475f) },ScannerFilePath = "01_specific_location\\0x000E7300.mp3" },//Vinewood
-            new ConvenienceStore(new Vector3(2682.938f, 3282.287f, 55.24056f), 243.885f,  "24/7", "As fast as you","TwentyFourSevenMenu") { OpenTime = 0, CloseTime = 24 ,BannerImagePath = "stores\\247.png", InteriorID = 13826, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(2676.595f, 3280.101f, 55.24113f), 325.0921f) },},
-            new ConvenienceStore(new Vector3(1730.507f, 6410.014f, 35.00065f), 153.9039f,  "24/7","As fast as you","TwentyFourSevenMenu") {  OpenTime = 0, CloseTime = 24,BannerImagePath = "stores\\247.png", InteriorID = 36354, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(1728.436f, 6416.584f, 35.03722f), 241.2023f) }, },//Braddock pass
-            new ConvenienceStore(new Vector3(1965.801f, 3739.945f, 32.322f), 207.564f,  "24/7","As fast as you","TwentyFourSevenMenu") { OpenTime = 0, CloseTime = 24,BannerImagePath = "stores\\247.png", InteriorID = 55554, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(1959.352f, 3741.18f, 32.34374f), 303.8849f) }, },
-            new ConvenienceStore(new Vector3(-53.5351f, -1757.196f, 29.43954f), 146.0623f,  "LtD", "unLTD great prices!","LTDMenu"){ BannerImagePath = "stores\\ltd.png",OpenTime = 0, CloseTime = 24, InteriorID = 80642, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(-45.89098f, -1757.345f, 29.42101f), 52.66933f) }, },
+            new ConvenienceStore(new Vector3(547f, 2678f, 42.1565f), 22.23846f,  "24/7","As fast as you","TwentyFourSevenMenu"){ ActivateDistance = 75f, OpenTime = 0, CloseTime = 24,BannerImagePath = "stores\\247.png", InteriorID = 41474, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(549.6005f, 2669.846f, 42.1565f), 96.91093f) },},
+            new ConvenienceStore(new Vector3(-3236.767f,1005.609f,12.33137f), 122.6316f,  "24/7","As fast as you","TwentyFourSevenMenu"){ ActivateDistance = 75f, OpenTime = 0, CloseTime = 24,BannerImagePath = "stores\\247.png", InteriorID = 16386, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(-3243.302f, 1000.005f, 12.83071f), 352.6259f) }, },
+            new ConvenienceStore(new Vector3(2560f, 385f, 108f), 22.23846f,  "24/7","As fast as you","TwentyFourSevenMenu"){ ActivateDistance = 75f, OpenTime = 0, CloseTime = 24,BannerImagePath = "stores\\247.png", InteriorID = 62722, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(2555.339f, 380.9034f, 108.6229f), 347.3629f) }, },
+            new ConvenienceStore(new Vector3(29.32254f, -1350.485f, 29.33319f), 170.9901f,  "24/7", "As fast as you","TwentyFourSevenMenu"){ ActivateDistance = 75f, OpenTime = 0, CloseTime = 24,BannerImagePath = "stores\\247.png", InteriorID = 33282, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(24.39647f, -1345.484f, 29.49702f), 252.9084f) }, },
+            new ConvenienceStore(new Vector3(-3037.729f, 589.7671f, 7.814812f), 289.0175f,  "24/7", "As fast as you","TwentyFourSevenMenu"){ ActivateDistance = 75f, OpenTime = 0, CloseTime = 24,BannerImagePath = "stores\\247.png", InteriorID = 97538, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(-3039.787f, 584.1979f, 7.908929f), 12.80189f) }, },
+            new ConvenienceStore(new Vector3(376.3202f, 322.694f, 103.4389f), 162.5363f,  "24/7", "As fast as you","TwentyFourSevenMenu"){ ActivateDistance = 75f, OpenTime = 0, CloseTime = 24,BannerImagePath = "stores\\247.png", InteriorID = 46850, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(372.6485f, 327.0293f, 103.5664f), 257.6475f) },ScannerFilePath = "01_specific_location\\0x000E7300.mp3" },//Vinewood
+            new ConvenienceStore(new Vector3(2682.938f, 3282.287f, 55.24056f), 243.885f,  "24/7", "As fast as you","TwentyFourSevenMenu") { ActivateDistance = 75f, OpenTime = 0, CloseTime = 24 ,BannerImagePath = "stores\\247.png", InteriorID = 13826, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(2676.595f, 3280.101f, 55.24113f), 325.0921f) },},
+            new ConvenienceStore(new Vector3(1730.507f, 6410.014f, 35.00065f), 153.9039f,  "24/7","As fast as you","TwentyFourSevenMenu") {  ActivateDistance = 75f, OpenTime = 0, CloseTime = 24,BannerImagePath = "stores\\247.png", InteriorID = 36354, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(1728.436f, 6416.584f, 35.03722f), 241.2023f) }, },//Braddock pass
+            new ConvenienceStore(new Vector3(1965.801f, 3739.945f, 32.322f), 207.564f,  "24/7","As fast as you","TwentyFourSevenMenu") { ActivateDistance = 75f, OpenTime = 0, CloseTime = 24,BannerImagePath = "stores\\247.png", InteriorID = 55554, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(1959.352f, 3741.18f, 32.34374f), 303.8849f) }, },
+            new ConvenienceStore(new Vector3(-53.5351f, -1757.196f, 29.43954f), 146.0623f,  "LtD", "unLTD great prices!","LTDMenu"){ ActivateDistance = 75f, BannerImagePath = "stores\\ltd.png",OpenTime = 0, CloseTime = 24, InteriorID = 80642, VendorLocations = new List<SpawnPlace>() { new SpawnPlace(new Vector3(-45.89098f, -1757.345f, 29.42101f), 52.66933f) }, },
             new ConvenienceStore(new Vector3(-578.0112f, -1012.898f, 22.32503f), 359.4114f,  "24/7", "As fast as you","TwentyFourSevenMenu"){ OpenTime = 0, CloseTime = 24,BannerImagePath = "stores\\247.png" },
             new ConvenienceStore(new Vector3(-696.9965f, -858.7673f, 23.69209f), 85.51252f,  "24/7", "24/7","TwentyFourSevenMenu"){ OpenTime = 0, CloseTime = 24,BannerImagePath = "stores\\247.png" },
             new ConvenienceStore(new Vector3(152.5101f, 237.4131f, 106.9718f), 165.2823f,  "24/7", "As fast as you","TwentyFourSevenMenu"){ OpenTime = 0, CloseTime = 24,BannerImagePath = "stores\\247.png" },
@@ -6573,9 +6650,29 @@ public class PlacesOfInterest : IPlacesOfInterest
     private void DefaultConfig_ScrapYards()
     {
         ScrapYards = new List<ScrapYard>() {
-            new ScrapYard(new Vector3(1520.797f, -2113.375f, 76.86716f), 270.4797f, "Wesley's Scrap Yard", "Don't Ask, Don't Tell!") { OpenTime = 0, CloseTime = 24 },
-            new ScrapYard(new Vector3(909.7432f, 3554.745f, 33.81702f), 211.2794f, "Marina Drive Scrap", "Top value for your 'questionable' provenance") { OpenTime = 0, CloseTime = 24 },
-            new ScrapYard(new Vector3(-195.9066f, 6264.628f, 31.48937f), 41.33705f, "Red's Machine Supplies", "Parts Bought and Sold!") { OpenTime = 0, CloseTime = 24 },
+            new ScrapYard(new Vector3(1520.797f, -2113.375f, 76.86716f), 270.4797f, "Wesley's Scrap Yard", "Don't Ask, Don't Tell!") { OpenTime = 0, CloseTime = 24,
+                PossiblePedSpawns = new List<ConditionalLocation>() {
+                    new ConditionalLocation(new Vector3(1519.222f, -2146.328f, 77.23196f), 325.0221f,0f),
+                    new ConditionalLocation(new Vector3(1505.636f, -2132.731f, 76.32128f), 307.6291f, 0f),
+                    new ConditionalLocation(new Vector3(1500.551f, -2094.395f, 76.80859f), 237.8205f, 0f),
+                    new ConditionalLocation(new Vector3(1495.011f, -2109.1f, 76.18463f), 298.1635f, 0f),
+                    new ConditionalLocation(new Vector3(1565.771f, -2111.351f, 82.0716f), 93.74275f, 0f),
+                    new ConditionalLocation(new Vector3(1571.84f, -2131.504f, 77.59312f), 113.5834f, 0f),
+                    new ConditionalLocation(new Vector3(1562.526f, -2163.027f, 77.52135f), 27.26428f, 0f), } },
+            new ScrapYard(new Vector3(909.7432f, 3554.745f, 33.81702f), 211.2794f, "Marina Drive Scrap", "Top value for your 'questionable' provenance") { OpenTime = 0, CloseTime = 24,
+                PossiblePedSpawns = new List<ConditionalLocation>() {
+                    new ConditionalLocation(new Vector3(911.3051f, 3572.159f, 33.77966f), 90.72236f,0f),
+                    new ConditionalLocation(new Vector3(900.216f, 3571.254f, 33.66018f), 103.1787f, 0f),
+                    new ConditionalLocation(new Vector3(897.4851f, 3561.984f, 33.80343f), 186.2757f, 0f),
+                    new ConditionalLocation(new Vector3(981.8936f, 3575.572f, 33.53224f), 111.1363f, 0f), } },
+            new ScrapYard(new Vector3(-195.9066f, 6264.628f, 31.48937f), 41.33705f, "Red's Machine Supplies", "Parts Bought and Sold!") { OpenTime = 0, CloseTime = 24, 
+                PossiblePedSpawns = new List<ConditionalLocation>() { 
+                    new ConditionalLocation(new Vector3(-200.7719f, 6255.046f, 31.48945f), 39.31646f,0f),
+                    new ConditionalLocation(new Vector3(-159.6843f, 6289.166f, 31.48939f), 115.1323f,0f),
+                    new ConditionalLocation(new Vector3(-181.0547f, 6310.244f, 31.48939f), 158.7643f,0f),
+                    new ConditionalLocation(new Vector3(-221.1623f, 6283.701f, 31.48944f), 276.1004f,0f),
+                    new ConditionalLocation(new Vector3(-211.1523f, 6243.821f, 37.28856f), 355.7605f,0f),
+                    new ConditionalLocation(new Vector3(-225.2164f, 6273.531f, 31.6843f), 239.2869f,0f), } },
         };
     }
     private void DefaultConfig_BodyExports()
@@ -6593,7 +6690,14 @@ public class PlacesOfInterest : IPlacesOfInterest
                 BannerImagePath = "stores\\crushinator.png",
                 CameraPosition = new Vector3(-527.7763f, -1704.601f, 27.12083f),
                 CameraDirection = new Vector3(0.005943439f, -0.9625598f, -0.2710043f),
-                CameraRotation = new Rotator(-15.72404f, 1.940237E-07f, -179.6462f)
+                CameraRotation = new Rotator(-15.72404f, 1.940237E-07f, -179.6462f),
+                PossiblePedSpawns = new List<ConditionalLocation>() {
+                    new ConditionalLocation(new Vector3(-491.0561f, -1695.284f, 19.28301f), 146.4357f,0f),
+                    new ConditionalLocation(new Vector3(-509.989f, -1665.741f, 19.23609f), 197.5626f, 0f),
+                    new ConditionalLocation(new Vector3(-554.024f, -1692.894f, 19.26016f), 211.9953f, 0f),
+                    new ConditionalLocation(new Vector3(-568.3234f, -1686.579f, 19.26737f), 229.5074f, 0f),
+                    new ConditionalLocation(new Vector3(-548.8939f, -1691.405f, 25.65687f), 207.9379f, 0f),
+                    new ConditionalLocation(new Vector3(-557.852f, -1727.506f, 23.87237f), 312.2628f, 0f), }
             },
         };
     }

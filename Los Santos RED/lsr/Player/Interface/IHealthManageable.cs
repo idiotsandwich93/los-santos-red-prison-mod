@@ -11,5 +11,7 @@ namespace LosSantosRED.lsr.Interface
     {
         HumanState HumanState { get; }
         Ped Character { get; }
+        bool IsInVehicle { get; }
+        HealthManager HealthManager { get; }
     }
 }
