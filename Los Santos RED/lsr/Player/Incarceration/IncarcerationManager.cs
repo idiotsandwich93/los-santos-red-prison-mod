@@ -43,6 +43,11 @@ public class IncarcerationManager
     private const string BreakPromptID = "StartPrisonBreak";
     private const string BreakPromptGroup = "PrisonBreak";
 
+    // The crime reported when the player breaks out. Must match <ID>PrisonBreak</ID> in Crimes.xml (the
+    // user installs that). Until it's installed, Crimes.GetCrime returns null and the report is a no-op -
+    // the SetWantedLevel floor below still applies, so escape always lands at the escape wanted level.
+    private const string PrisonBreakCrimeID = "PrisonBreak";
+
     public IncarcerationManager(Mod.Player player, IPlacesOfInterest placesOfInterest, ISettingsProvideable settings, IGameSaves gameSaves)
     {
         Player = player;
@@ -309,6 +314,11 @@ public class IncarcerationManager
         EntryPoint.WriteToConsole($"Incarceration: releasing player to {releasePos} hdg {releaseHeading}", 0);
         Player.Respawning.ReleaseToCoordinates(releasePos, releaseHeading);
         GameFiber.Sleep(300);
+        // Re-assert the player's real outfit through LSR after the teleport so the jumpsuit is definitively
+        // gone on release/bail (the raw component-revert above wasn't sticking through the release respawn).
+        // This re-applies their actual saved appearance. It only runs here on release - HandleEscape (jailbreak)
+        // never restores, so a fugitive keeps the suit.
+        Player.CurrentModelVariation?.ApplyToPed(Player.Character, false);
         EntryPoint.PlayerIsIncarcerated = false;
         IsServingSentence = false;
         Game.FadeScreenIn(1500);
@@ -327,16 +337,16 @@ public class IncarcerationManager
         // Report the crime FIRST, while you're still at the break spot in the yard surrounded by guards, so it's
         // genuinely witnessed - that's what makes the wanted level stick. (Reporting it after the teleport, at the
         // empty exit, left LSR with no witnesses, so it cleared the wanted straight back to 0.) AddViolatingAndObserved
-        // logs "Trespassing on Government Property" as OBSERVED at the player's current position; then floor the wanted
-        // at the escape setting (5). The fade-out below gives the police response ~900ms to lock in before the
-        // teleport moves you, and the manhunt follows you out.
-        Player.Violations.AddViolatingAndObserved(StaticStrings.TrespessingOnGovtPropertyCrimeID);
+        // logs the "Prison Break" crime (Crimes.xml) as OBSERVED at the player's current position; then floor the
+        // wanted at the escape setting (5). The fade-out gives the police response ~900ms to lock in before the
+        // teleport moves you, and the manhunt follows you out (SearchMode runs the APB when they lose visual).
+        Player.Violations.AddViolatingAndObserved(PrisonBreakCrimeID);
         Player.SetWantedLevel(PS.EscapeWantedLevel, "Prison Escape", true);
         if (NormalizeState(prison.StateID) == StaticStrings.SanAndreasStateID)
         {
             Game.FadeScreenOut(800);
             GameFiber.Sleep(900);
-            Player.Respawning.ReleaseToCoordinates(new Vector3(1529.087f, 2584.939f, 45.62539f), 87.80148f);
+            Player.Respawning.ReleaseToCoordinates(new Vector3(1842.693f, 2716.231f, 45.78306f), 329.6075f);
             GameFiber.Sleep(200);
             Game.FadeScreenIn(800);
         }
