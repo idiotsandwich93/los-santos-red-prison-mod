@@ -15,6 +15,8 @@ using System.Windows.Forms;
 using System.Reflection;
 using NAudio.Wave;
 using static System.Windows.Forms.VisualStyles.VisualStyleElement;
+using System.Collections;
+using Mod;
 
 public class ActivityManager
 {
@@ -257,6 +259,7 @@ public class ActivityManager
     public bool IsUsingIllegalItem { get; set; }
     public bool IsHidingInObject { get; set; }
     public bool IsPickPocketing { get; set; }
+    public bool IsManuallyHotwiringVehicle { get; private set; }
 
     private bool isStartingPickpocket;
 
@@ -805,27 +808,13 @@ public class ActivityManager
             Game.DisplayHelp("Cancel existing activity to start");
             return;
         }
-        if (!Settings.SettingsManager.DebugSettings.UseNewDrag)
+        Drag drag = new Drag(Interactionable, Player.CurrentLookedAtPed, Settings, Crimes, ModItems, World, VehicleSeatDoorData);
+        if (drag.CanPerform(Actionable))
         {
-            Drag drag = new Drag(Interactionable, Player.CurrentLookedAtPed, Settings, Crimes, ModItems, World, VehicleSeatDoorData);
-            if (drag.CanPerform(Actionable))
-            {
-                ForceCancelAllActive();
-                IsPerformingActivity = true;
-                LowerBodyActivity = drag;
-                LowerBodyActivity.Start();
-            }
-        }
-        else
-        {
-            NewDrag drag = new NewDrag(Interactionable, Player.CurrentLookedAtPed, Settings, Crimes, ModItems, World, VehicleSeatDoorData);
-            if (drag.CanPerform(Actionable))
-            {
-                ForceCancelAllActive();
-                IsPerformingActivity = true;
-                LowerBodyActivity = drag;
-                LowerBodyActivity.Start();
-            }
+            ForceCancelAllActive();
+            IsPerformingActivity = true;
+            LowerBodyActivity = drag;
+            LowerBodyActivity.Start();
         }
     }
     public void StartSleeping()
@@ -2060,7 +2049,7 @@ public class ActivityManager
 
     public void HotwireVehicle()
     {
-        if(Player.CurrentVehicle == null || !Player.CurrentVehicle.IsHotWireLocked)
+        if(Player.CurrentVehicle == null || !Player.CurrentVehicle.IsHotWireLocked || IsManuallyHotwiringVehicle)
         {
             return;
         }
@@ -2070,16 +2059,100 @@ public class ActivityManager
             Game.DisplayHelp("Screwdriver required to hotwire");
             return;
         }
-        Player.CurrentVehicle.IsHotWireLocked = false;
+        //Player.CurrentVehicle.IsHotWireLocked = false;
         GameTimeLastStartedHotwiring = Game.GameTime;
         if(!Player.CurrentVehicle.Vehicle.Exists())
         {
             return;
         }
-        Player.CurrentVehicle.Vehicle.MustBeHotwired = true;
-        Player.CurrentVehicle.Engine.SetState(true);
-        //GameFiber.Sleep(2500);
-        //Player.CurrentVehicle?.Engine.Synchronize();
+
+        if(Settings.SettingsManager.ActivitySettings.UseMinigameForHotwire)
+        {
+            GameFiber.StartNew(StartInteractiveHotwire);         
+        }
+        else
+        {
+            Player.CurrentVehicle.IsHotWireLocked = false;
+            Player.CurrentVehicle.Vehicle.MustBeHotwired = true;
+            Player.CurrentVehicle.Engine.SetState(true);
+            //GameFiber.Sleep(2500);
+            //Player.CurrentVehicle?.Engine.Synchronize();
+        }
+
+    }
+    private void StartInteractiveHotwire()
+    {
+        EntryPoint.WriteToConsole("StartInteractiveHotwire");
+        Player.ButtonPrompts.RemovePrompts("VehicleHotwire");
+        string dictionary = "veh@std@ds@base";
+        string anim = "hotwire";
+
+        IsManuallyHotwiringVehicle = true;
+        IsPerformingActivity = true;
+
+        StopDynamicActivity();
+        Player.ButtonPrompts.AttemptAddPrompt("hotwire", "Cancel Hotwire", "cancelhotwire", GameControl.Aim, 0);
+
+
+        AnimationDictionary.RequestAnimationDictionay(dictionary);
+        NativeFunction.CallByName<uint>("TASK_PLAY_ANIM", Player.Character, dictionary, anim, 4.0f, -4.0f, -1, (int)(eAnimationFlags.AF_UPPERBODY | eAnimationFlags.AF_SECONDARY | eAnimationFlags.AF_LOOPING), 0, false, false, false);//-1
+
+        int TotalPins = 2;
+        int TotalPinSteps = 2;
+        float ZoneWidth = 20f;
+        float FillSpeed = 1.0f;
+        Player.CurrentVehicle.GetHotwireStats(out TotalPins, out TotalPinSteps, out ZoneWidth, out FillSpeed);
+
+        LockpickMiniGame lockpickMiniGame = new LockpickMiniGame(Interactionable,true, TotalPins, TotalPinSteps, ZoneWidth, FillSpeed);
+        lockpickMiniGame.Start();
+
+        bool isLooping = false;
+        float LockpickAnimStopPercentage = 0.6f;
+        float LockpickAnimRestartPercentage = 0.5f;
+        float LockpickAnimAnimRate = 1.0f;// Settings.SettingsManager.DebugSettings.LockpickAnimAnimRate;
+        
+
+        while (lockpickMiniGame.IsActive && Player.IsAliveAndFree)
+        {
+
+            float pedAnimTime = NativeFunction.CallByName<float>("GET_ENTITY_ANIM_CURRENT_TIME", Game.LocalPlayer.Character, dictionary, anim);
+            if (pedAnimTime >= LockpickAnimStopPercentage)
+            {
+                isLooping = true;
+                NativeFunction.Natives.SET_ANIM_RATE(Player.Character, -1.0f * LockpickAnimAnimRate, 0, false);
+                NativeFunction.Natives.SET_ANIM_RATE(Player.Character, -1.0f * LockpickAnimAnimRate, 1, false);
+                NativeFunction.Natives.SET_ANIM_RATE(Player.Character, -1.0f * LockpickAnimAnimRate, 2, false);
+            }
+            else if (isLooping && pedAnimTime <= LockpickAnimRestartPercentage)
+            {
+                NativeFunction.Natives.SET_ANIM_RATE(Player.Character, LockpickAnimAnimRate, 0, false);
+                NativeFunction.Natives.SET_ANIM_RATE(Player.Character, LockpickAnimAnimRate, 1, false);
+                NativeFunction.Natives.SET_ANIM_RATE(Player.Character, LockpickAnimAnimRate, 2, false);
+            }
+            Player.WeaponEquipment.SetUnarmed();
+
+            if(Player.ButtonPrompts.IsPressed("cancelhotwire"))
+            {
+                break;
+            }
+
+
+
+
+            GameFiber.Yield();
+        }
+        IsManuallyHotwiringVehicle = false;
+        IsPerformingActivity = false;
+        EntryPoint.WriteToConsole("StartInteractiveHotwire END LOOP!!!");
+        lockpickMiniGame.Dispose();
+        Player.ButtonPrompts.RemovePrompts("hotwire");
+        NativeFunction.Natives.CLEAR_PED_TASKS(Player.Character);
+        if (lockpickMiniGame.HasPickedLock)
+        {
+            Player.CurrentVehicle.IsHotWireLocked = false;
+            ///Player.CurrentVehicle.Vehicle.MustBeHotwired = true;
+            ToggleVehicleEngine();
+        }
     }
 
     public void OnLookedAtObject(Rage.Object currentLookedAtObject)
@@ -2141,7 +2214,7 @@ public class ActivityManager
     public void CheckDoorButtonPrompts(ButtonPrompts buttonPrompts, Rage.Object currentLookedAtObject)
     {
         //EntryPoint.WriteToConsole($"CheckDoorButtonPrompts ActiveDoor == null:{ActiveDoor == null}  IsPerformingActivity:{IsPerformingActivity}");
-        if (ActiveDoor == null || IsPerformingActivity)
+        if (ActiveDoor == null || IsPerformingActivity || !ActiveDoor.IsLocked || !ActiveDoor.CanBeForcedOpenByPlayer)
         {
             buttonPrompts.RemovePrompts("DoorInteract");
             return;

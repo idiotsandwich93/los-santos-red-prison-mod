@@ -176,11 +176,19 @@ public class Gang : IPlatePrefixable, IGeneratesDispatchables
     public LoanParameters LoanParameters { get; set; } = new LoanParameters();
 
 
+    public int TakeoverTerritoryCasualtyLimitMin { get; set; }
+
+    public int TakeoverTerritoryCasualtyLimitMax{ get; set; }
 
 
+    public int TakeoverTerritoryRetaliationTimesMin { get; set; }
+    public int TakeoverTerritoryRetaliationTimesMax { get; set; }
 
     public GangClassification GangClassification { get; set; } = GangClassification.Generic;
     public List<string> EnemyGangs { get; set; } = new List<string>();
+
+    public List<string> FriendlyGangs { get; set; } = new List<string>();
+
     [XmlIgnore]
     public List<RandomHeadData> PossibleHeads { get; set; } = new List<RandomHeadData>();
     [XmlIgnore]
@@ -204,6 +212,7 @@ public class Gang : IPlatePrefixable, IGeneratesDispatchables
     public string ColorInitials => ColorPrefix + ShortName;
 
     public float PercentageWillRacePlayer { get; set; } = 55f;
+    public int GangWarCasualtyLimit { get; set; } = 10;//25;
 
     public bool CanSpawn(int wantedLevel) => wantedLevel >= MinWantedLevelSpawn && wantedLevel <= MaxWantedLevelSpawn;
     public DispatchablePerson GetRandomPed(int wantedLevel, string RequiredPedGroup)// List<string> RequiredModels)
@@ -500,6 +509,11 @@ public class Gang : IPlatePrefixable, IGeneratesDispatchables
         CopHitPaymentMax = 10500;
         HostileRepLevel = -200;
         PercentageWillRacePlayer = 55f;
+        GangWarCasualtyLimit = 25;
+        TakeoverTerritoryCasualtyLimitMin = 15;
+        TakeoverTerritoryCasualtyLimitMax = 25;
+        TakeoverTerritoryRetaliationTimesMin = 2;
+        TakeoverTerritoryRetaliationTimesMax = 5;
     }
 
 }

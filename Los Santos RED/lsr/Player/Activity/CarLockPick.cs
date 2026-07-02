@@ -26,7 +26,9 @@ public class CarLockPick
     private ISettingsProvideable Settings;
     private IInteractionable Interactionable;
     private IBasicUseable BasicUseable;
-    public CarLockPick(ICarStealable player, Vehicle targetVehicle, int seatTryingToEnter, ScrewdriverItem screwdriverItem, ISettingsProvideable settings, IInteractionable interactionable, IBasicUseable basicUseable)
+    private VehicleExt TargetVehicleExt;
+    public CarLockPick(ICarStealable player, Vehicle targetVehicle, int seatTryingToEnter, ScrewdriverItem screwdriverItem, ISettingsProvideable settings, IInteractionable interactionable, 
+        IBasicUseable basicUseable, VehicleExt targetVehicleExt)
     {
         Player = player;
         TargetVehicle = targetVehicle;
@@ -35,6 +37,7 @@ public class CarLockPick
         Settings = settings;
         Interactionable = interactionable;
         BasicUseable = basicUseable;
+        TargetVehicleExt = targetVehicleExt;
     }
 
     private bool CanLockPick
@@ -121,10 +124,18 @@ public class CarLockPick
         {
             return false;
         }
+
+        NativeFunction.Natives.CLEAR_PED_TASKS(Player.Character);
+
+
         OriginalLockStatus = TargetVehicle.LockStatus;
         TargetVehicle.SetLock((VehicleLockStatus)3);//Attempt to lock most car doors
         Player.WeaponEquipment.SetUnarmed();
-        if(TargetVehicle.LockStatus != (VehicleLockStatus)3)
+
+        NativeFunction.Natives.TASK_ENTER_VEHICLE(Player.Character, TargetVehicle, -1, SeatTryingToEnter, 2.0f, 1, 0);
+
+
+        if (TargetVehicle.LockStatus != (VehicleLockStatus)3)
         {
             EntryPoint.WriteToConsole($"SetupLockPick Failed, Could Not Set Lock Status to 3 Current Status {(int)TargetVehicle.LockStatus}");//some IV pack cars fail even with the door open.....
             NativeFunction.Natives.TASK_ENTER_VEHICLE(Player.Character, TargetVehicle, -1, SeatTryingToEnter, 2.0f, 1, 0);
@@ -206,7 +217,7 @@ public class CarLockPick
             EntryPoint.WriteToConsole("SCREWDRIVER ITEM IS NULL 2");
             return false;
         }
-        Continue = ScrewdriverItem.DoLockpickAnimation(Interactionable, BasicUseable, OpenDoor, Settings, "veh@break_in@0h@p_m_one@", Animation, false,true, TargetVehicle, SeatTryingToEnter, DoorIndex, null);
+        Continue = ScrewdriverItem.DoLockpickAnimation(Interactionable, BasicUseable, OpenDoor, Settings, "veh@break_in@0h@p_m_one@", Animation, false,true, TargetVehicle, SeatTryingToEnter, DoorIndex, null, TargetVehicleExt);
         if (!TargetVehicle.Exists())
         {
             return false;

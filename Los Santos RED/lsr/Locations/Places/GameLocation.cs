@@ -50,6 +50,7 @@ public class GameLocation : ILocationDispatchable
     protected DateTime NextPriceRefreshTime;
     protected DateTime LastInteractTime;
 
+
     protected uint DistanceUpdateIntervalTime
     {
         get
@@ -273,6 +274,10 @@ public class GameLocation : ILocationDispatchable
     public string StreetAddress { get; set; }
     [XmlIgnore]
     public string ZoneName { get; set; }
+
+    [XmlIgnore]
+    public string ZoneID { get; set; }
+
     [XmlIgnore]
     public GameState GameState { get; set; }
     [XmlIgnore]
@@ -403,7 +408,7 @@ public class GameLocation : ILocationDispatchable
     }
     public virtual void AttemptVendorSpawn(bool isOpen, IInteriors interiors, ISettingsProvideable settings, ICrimes crimes, IWeapons weapons, ITimeReportable time, IEntityProvideable world, bool isInterior)
     {
-        //EntryPoint.WriteToConsole($"ATTEMPT VENDOR SPAWN AT {Name}");
+        EntryPoint.WriteToConsole($"ATTEMPT VENDOR SPAWN AT {Name} RAN");
         int VendorsSpawned = 0;
         List<SpawnPlace> spawns = new List<SpawnPlace>();
         if(isInterior)
@@ -430,7 +435,7 @@ public class GameLocation : ILocationDispatchable
             }
         }
     }
-    protected virtual bool ShouldSpawnVendor() => true;
+    protected virtual bool ShouldSpawnVendor() => !IsServiceFilled;
     protected virtual void LoadInterior(bool isOpen)
     {
         if (HasInterior && interior != null)
@@ -477,6 +482,17 @@ public class GameLocation : ILocationDispatchable
         toreturn.Add(Tuple.Create("Distance:", Math.Round(distanceTo * 0.000621371, 2).ToString() + " Miles away"));
         return toreturn;
 
+    }
+    public virtual string MapsInfo(int currentHour, float distanceTo)
+    {
+        string toReturn = Description;
+        toReturn += "~n~Currently: " + (IsTemporarilyClosed ? "~r~Temporarily Closed~s~" : IsOpen(currentHour) ? "~s~Open~s~" : "~m~Closed~s~");
+        toReturn += "~n~Hours: " + (Is247 ? "~g~24/7~s~" : $"{OpenTime}{(OpenTime <= 11 ? " am" : " pm")}-{CloseTime - 12}{(CloseTime <= 11 ? " am" : " pm")}");
+        toReturn += "~n~Address: " + StreetAddress;
+        toReturn += "~n~Location: " + "~p~" + ZoneName + "~s~";
+        toReturn += "~n~Distance: " + Math.Round(distanceTo * 0.000621371f, 2).ToString() + " Miles away";
+
+        return toReturn;
     }
     public virtual string TaxiInfo(int currentHour, float distanceTo, TaxiFirm taxiFirm)
     {
@@ -538,7 +554,7 @@ public class GameLocation : ILocationDispatchable
             interior = interiors?.GetInteriorByLocalID(InteriorID);
             if (interior != null)
             {
-                interior.GameLocation = this;
+                interior.SetGameLocation(this);// interior.GameLocation = this;
             }
         }  
     }
@@ -908,6 +924,7 @@ public class GameLocation : ILocationDispatchable
                 betweener = $"in";
             }
             zoneString = $"~p~{placeZone.DisplayName}~s~";
+            ZoneID = placeZone.InternalGameName;
             //stateString = placeZone.GameState?.StateName;
         }
         string streetName = streets.GetStreetNames(EntrancePosition, false);
@@ -1243,7 +1260,10 @@ public class GameLocation : ILocationDispatchable
         }
         
         HandleVariableItems();
-       // EntryPoint.WriteToConsole($"ATTEMPTING VENDOR AT {Name} {VendorPersonType.ModelName}");
+
+        GameFiber.Yield();
+
+        EntryPoint.WriteToConsole($"ATTEMPTING VENDOR AT {Name} {VendorPersonType.ModelName}");
        // Vendors = new List<Merchant>();
         SpawnLocation sl = new SpawnLocation(spawnPlace.Position) { Heading = spawnPlace.Heading };
         MerchantSpawnTask merchantSpawnTask = new MerchantSpawnTask(sl, null,VendorPersonType,false,false,true,Settings,Crimes,Weapons,Names,World,ModItems,ShopMenus,this);

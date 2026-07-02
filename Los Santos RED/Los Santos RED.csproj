@@ -27,7 +27,7 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\..\..\..\..\..\Program Files %28x86%29\Steam\steamapps\common\Grand Theft Auto V\Plugins\</OutputPath>
+    <OutputPath>..\..\..\..\..\..\..\Program Files %28x86%29\Steam\steamapps\common\Grand Theft Auto V Enhanced\Plugins\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -44,7 +44,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x64'">
-    <OutputPath>..\..\..\..\..\..\..\Program Files %28x86%29\Steam\steamapps\common\Grand Theft Auto V\Plugins\</OutputPath>
+    <OutputPath>..\..\..\..\..\..\..\Program Files %28x86%29\Steam\steamapps\common\Grand Theft Auto V Enhanced\Plugins\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <Optimize>true</Optimize>
     <DebugType>pdbonly</DebugType>
@@ -107,6 +107,27 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug Enhanced|x64'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>..\..\..\..\..\..\..\Program Files %28x86%29\Steam\steamapps\common\Grand Theft Auto V Enhanced\plugins\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>x64</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+    <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release Enhanced|AnyCPU'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\Release Enhanced\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <DebugType>full</DebugType>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <LangVersion>7.3</LangVersion>
+    <ErrorReport>prompt</ErrorReport>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release Enhanced|x64'">
+    <DebugSymbols>true</DebugSymbols>
+    <OutputPath>bin\x64\Release Enhanced\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <DebugType>full</DebugType>
@@ -194,6 +215,8 @@
     <Compile Include="lsr\Data\Peds\Dispatchable People\OptionalAppliedOverlayLogic.cs" />
     <Compile Include="lsr\Data\Peds\Dispatchable People\Service\DispatchablePeople_Service.cs" />
     <Compile Include="lsr\Data\Peds\PedOverlayNames.cs" />
+    <Compile Include="lsr\Data\Saves\GangRetaliationSave.cs" />
+    <Compile Include="lsr\Data\Saves\GangWarSave.cs" />
     <Compile Include="lsr\Data\Saves\SavedGameLocation.cs" />
     <Compile Include="lsr\Data\Saves\SavedBusiness.cs" />
     <Compile Include="lsr\Data\Settings\PlayerGeneralSettings\GroupSettings.cs" />
@@ -299,6 +322,8 @@
     <Compile Include="lsr\Player\Activity\Items\IngestActivityNew.cs" />
     <Compile Include="lsr\Player\Activity\Pickpocket.cs" />
     <Compile Include="lsr\Player\Button Prompts\GenericMinigame.cs" />
+    <Compile Include="lsr\Player\Button Prompts\LockpickMiniGame.cs" />
+    <Compile Include="lsr\Player\Cellphone\Burner\Apps\BurnerPhoneMapsApp.cs" />
     <Compile Include="lsr\Player\Crafting\Craft.cs" />
     <Compile Include="lsr\Player\Gambling\Blackjack Games\BlackJackGame.cs" />
     <Compile Include="lsr\Player\Gambling\Blackjack Games\BlackjackGameUI.cs" />
@@ -575,11 +600,13 @@
     <Compile Include="lsr\Player\Gambling\Roulette\RouletteWheel.cs" />
     <Compile Include="lsr\Player\Gambling\Roulette\Betting\Bet Types\SingleBet.cs" />
     <Compile Include="lsr\Player\Gambling\Roulette\Betting\Menus\SingleBetMenu.cs" />
+    <Compile Include="lsr\Player\Gang\GangRetaliation.cs" />
+    <Compile Include="lsr\Player\Gang\GangTerritoryManager.cs" />
+    <Compile Include="lsr\Player\Gang\GangWar.cs" />
     <Compile Include="lsr\Player\HumanState\ArmorManager.cs" />
     <Compile Include="lsr\Player\Interaction\Conversation\AdvancedConversation.cs" />
     <Compile Include="lsr\Old\FullConversation_Old.cs" />
     <Compile Include="lsr\Player\Interaction\Conversation\IAdvancedConversationable.cs" />
-    <Compile Include="lsr\Player\Interaction\NewDrag.cs" />
     <Compile Include="lsr\Player\Interaction\PedGrab\PedCuff.cs" />
     <Compile Include="lsr\Player\Interaction\PedGrab\HumanShield.cs" />
     <Compile Include="lsr\Player\Interaction\PedGrab\PedGrab.cs" />
@@ -591,6 +618,7 @@
     <Compile Include="lsr\Player\Interface\IClipsetManageable.cs" />
     <Compile Include="lsr\Player\Interface\ICuffable.cs" />
     <Compile Include="lsr\Player\Interface\IGangBackupable.cs" />
+    <Compile Include="lsr\Player\Interface\IGangTerritoryManageable.cs" />
     <Compile Include="lsr\Player\Interface\IInteriorManageable.cs" />
     <Compile Include="lsr\Player\Interface\IIntimidationManageable.cs" />
     <Compile Include="lsr\Player\Interface\IOutfitManageable.cs" />
@@ -675,6 +703,7 @@
     <Compile Include="lsr\Tasker\Generic\GeneralInvestigate\FireGeneralInvestigate.cs" />
     <Compile Include="lsr\Tasker\Generic\GeneralInvestigate\EMSGeneralInvestigate.cs" />
     <Compile Include="lsr\Tasker\Generic\GeneralLocate\GangGeneralLocate.cs" />
+    <Compile Include="lsr\Tasker\Generic\GeneralLocate\DrivePlayerInVehicleTaskState.cs" />
     <Compile Include="lsr\Tasker\Generic\GeneralLocate\GoToPositionVehicleRaceTaskState.cs" />
     <Compile Include="lsr\Tasker\Generic\GeneralLocate\MarshalGeneralLocate.cs" />
     <Compile Include="lsr\Tasker\Generic\GeneralLocate\RegularGoToInVehicleTaskState.cs" />

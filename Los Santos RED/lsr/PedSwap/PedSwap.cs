@@ -686,7 +686,8 @@ public class PedSwap : IPedSwap
             //Player.RemoveAgencyStatus();
             Player.ModelName = modelName;
             Player.CurrentModelVariation = variation.Copy();
-            Player.PlayerName = fullName;
+
+            Player.ChangeName(fullName);
             Player.BankAccounts.SetCash(money);
             if (Settings.SettingsManager.PedSwapSettings.AliasPedAsMainCharacter && !Player.CharacterModelIsPrimaryCharacter)
             {
@@ -1131,7 +1132,8 @@ public class PedSwap : IPedSwap
         Game.LocalPlayer.Character.Inventory.GiveNewWeapon(2725352035, 0, true);
         if (Settings.SettingsManager.PlayerOtherSettings.SetSlowMoOnDeath)
         {
-            Game.TimeScale = 1f;
+            //Game.TimeScale = 1f;
+            NativeFunction.Natives.SET_TIME_SCALE(1.0f);
         }
         NativeFunction.Natives.xB4EDDC19532BFB85();
         Game.HandleRespawn();
@@ -1222,7 +1224,8 @@ public class PedSwap : IPedSwap
         Game.LocalPlayer.Character.Inventory.GiveNewWeapon(2725352035, 0, true);
         if (Settings.SettingsManager.PlayerOtherSettings.SetSlowMoOnDeath)
         {
-            Game.TimeScale = 1f;
+            //Game.TimeScale = 1f;
+            NativeFunction.Natives.SET_TIME_SCALE(1.0f);
         }
         NativeFunction.Natives.xB4EDDC19532BFB85();
         Game.HandleRespawn();
@@ -1455,7 +1458,7 @@ public class PedSwap : IPedSwap
     }
     public void NewPlayer(string modelName, bool isMale, string playerName, int moneyToSpawnWith, int speechSkill, string voiceName)//gotta go
     {
-        Player.Reset(true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true);
+        Player.Reset(true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true, true);
         Player.SetDemographics(
             modelName, 
             isMale, 

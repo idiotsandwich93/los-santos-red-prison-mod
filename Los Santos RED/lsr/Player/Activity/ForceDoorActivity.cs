@@ -216,7 +216,7 @@ public class ForceDoorActivity : DynamicActivity
             return;
         }
         Player.Violations.SetContinuouslyViolating(StaticStrings.BreakingEnteringAudibleCrimeID);
-        drillItem.PerformDrillingAnimation(LocationInteractable, InteriorDoor.ForceOpenDoor, false, Interior);
+        drillItem.PerformDrillingAnimation(LocationInteractable, InteriorDoor.ForceOpenDoor, false, Interior, Settings);
         Player.Violations.StopContinuouslyViolating(StaticStrings.BreakingEnteringAudibleCrimeID);
     }
     private void BashDoor()
@@ -266,7 +266,7 @@ public class ForceDoorActivity : DynamicActivity
         }
         Player.Violations.SetContinuouslyViolating(StaticStrings.BreakingEnteringCrimeID);
        //screwdriverItem.PickDoorLock(LocationInteractable, BasicUseable, InteriorDoor.UnLockDoor);
-        screwdriverItem.DoLockpickAnimation(LocationInteractable, BasicUseable, InteriorDoor.ForceOpenDoor, Settings, true, false, Interior);
+        screwdriverItem.DoLockpickAnimation(LocationInteractable, BasicUseable, InteriorDoor.ForceOpenDoor, Settings, true, false, Interior, null);
         Player.Violations.StopContinuouslyViolating(StaticStrings.BreakingEnteringCrimeID);
     }
     private void Exit()

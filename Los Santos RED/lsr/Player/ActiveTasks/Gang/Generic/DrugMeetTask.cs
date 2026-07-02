@@ -47,6 +47,7 @@ namespace LosSantosRED.lsr.Player.ActiveTasks
             CleanupPeds();
             if (DealingLocation != null)
             {
+               
                 DealingLocation.IsPlayerInterestedInLocation = false;
             }
             base.Dispose();
@@ -61,11 +62,12 @@ namespace LosSantosRED.lsr.Player.ActiveTasks
 
             if(IsPlayerSellingDrugs)
             {
-                Replies.Add($"Meet set with {DealingGang.ColorPrefix}{DealingGang.ShortName}~s~. They will be around {DealingLocation.FullStreetAddress} with {Quantity} {ModItem.MeasurementName} of {ModItem.Name}. Should be ${UnitPrice * Quantity} to you.");
+                Replies.Add($"Meet set with {DealingGang.ColorPrefix}{DealingGang.ShortName}~s~. They will be around {DealingLocation.FullStreetAddress} with ${UnitPrice * Quantity} to buy {Quantity} {ModItem.MeasurementName} of {ModItem.Name}.");
+
             }
             else
             {
-                Replies.Add($"Meet set with {DealingGang.ColorPrefix}{DealingGang.ShortName}~s~. They will be around {DealingLocation.FullStreetAddress} with ${UnitPrice * Quantity} to buy {Quantity} {ModItem.MeasurementName} of {ModItem.Name}.");
+                Replies.Add($"Meet set with {DealingGang.ColorPrefix}{DealingGang.ShortName}~s~. They will be around {DealingLocation.FullStreetAddress} with {Quantity} {ModItem.MeasurementName} of {ModItem.Name}. Should be ${UnitPrice * Quantity} to you.");
             }
             Player.CellPhone.AddPhoneResponse(HiringGang.Contact.Name, HiringGang.Contact.IconName, Replies.PickRandom());
         }
@@ -138,34 +140,43 @@ namespace LosSantosRED.lsr.Player.ActiveTasks
                 {
                     break;
                 }
-                if(!HasArrivedNearMeetup && DealingLocation.DistanceToPlayer<= 200f)
+                if(!HasArrivedNearMeetup && DealingLocation.DistanceToPlayer<= 200f && !HasSetViolent)
                 {
                     OnArrivedNearMeetup();
                 }
-                if(HasArrivedNearMeetup && DealingLocation.DistanceToPlayer >= 275f)
+                if(HasArrivedNearMeetup && DealingLocation.DistanceToPlayer >= 275f && !HasSetViolent)
                 {
                     OnWentAwayFromMeetup();
                 }
-                if(HasCompletedSale())
+
+
+
+
+                if (!IsAmbush && HasArrivedNearMeetup && SpawnedMembers.Any(x => x.WasKilledByPlayer || x.HasBeenHurtByPlayer))
                 {
                     CurrentTask.OnReadyForPayment(false);
                     break;
                 }
-                if(IsAmbush && HasArrivedNearMeetup && SpawnedMembers.All(x => x.IsDead || !x.Pedestrian.Exists()))
+
+                if (!IsAmbush && HasCompletedSale())
                 {
                     CurrentTask.OnReadyForPayment(false);
                     break;
                 }
-                if(IsAmbush && !HasSetViolent && PrimaryGangMember != null && PrimaryGangMember.PlayerPerception.CanRecognizeTarget)
+
+
+
+                if(IsAmbush && HasSetViolent && (DealingLocation.DistanceToPlayer >= 275f || SpawnedMembers.All(x => x.IsDead || x.IsUnconscious || !x.Pedestrian.Exists())))
+                {
+                    CurrentTask.OnReadyForPayment(false);
+                    break;
+                }
+                if (IsAmbush && HasArrivedNearMeetup && !HasSetViolent && SpawnedMembers.Any(x=> x.PlayerPerception.CanRecognizeTarget || x.HasSeenPlayerCommitCrime || (x.CanSeePlayer && x.DistanceToPlayer <= 45f))) // PrimaryGangMember != null && PrimaryGangMember.PlayerPerception.CanRecognizeTarget)
                 {
                     HasSetViolent = true;
                     OnSetGangMembersViolent();
                 }
-                if(HasArrivedNearMeetup && SpawnedMembers.Any(x=> x.WasKilledByPlayer || x.HasBeenHurtByPlayer))
-                {
-                    CurrentTask.OnReadyForPayment(false);
-                    break;
-                }
+                
                 GameFiber.Sleep(1000);
             }
         }
@@ -179,8 +190,8 @@ namespace LosSantosRED.lsr.Player.ActiveTasks
                 gm.WillAlwaysFightPolice = true;
                 gm.WillFightPolice = true;
             }
-            Player.Dispatcher.GangDispatcher.DispatchHitSquad(DealingGang, true);
-            Game.DisplaySubtitle("Ambush, take them out and get the drugs.");
+            Player.Dispatcher.GangDispatcher.DispatchHitSquad(DealingGang, true);    
+            Game.DisplaySubtitle("Ambush, get out of there");      
             EntryPoint.WriteToConsole("DRUG MEETUP SET GANG MEMBERS VIOLENT! THEY RECOGNIZE YOU");
         }
 
@@ -250,9 +261,14 @@ namespace LosSantosRED.lsr.Player.ActiveTasks
         {
             EntryPoint.WriteToConsole("DRUG MEETUP START SPAWN DEALERS");
             SpawnLocation spawnLocation = new SpawnLocation(DealingLocation.EntrancePosition);
-            spawnLocation.GetClosestStreet(false);
-            spawnLocation.GetClosestSidewalk(); ;
-            GangSpawnTask gangSpawnTask = new GangSpawnTask(DealingGang, spawnLocation,null,DealingGang.GetRandomPed(0,""),true,Settings,Weapons,Names,false,Crimes,PedGroups,ShopMenus,World,ModItems,true,true,true);
+            //spawnLocation.GetClosestStreet(false);
+            //spawnLocation.GetClosestSidewalk(); ;
+
+
+            spawnLocation.StreetPosition = DealingLocation.EntrancePosition;
+            spawnLocation.Heading = DealingLocation.EntranceHeading;
+
+            GangSpawnTask gangSpawnTask = new GangSpawnTask(DealingGang, spawnLocation,null,DealingGang.GetRandomPed(0,""), Settings.SettingsManager.GangSettings.ShowSpawnedBlip, Settings,Weapons,Names,false,Crimes,PedGroups,ShopMenus,World,ModItems,true,true,true);
             gangSpawnTask.PlacePedOnGround = true;
             gangSpawnTask.AllowAnySpawn = true;
             gangSpawnTask.AllowBuddySpawn = true;
@@ -295,23 +311,18 @@ namespace LosSantosRED.lsr.Player.ActiveTasks
 
 
             List<SpawnLocation> OtherSpawnLocations = new List<SpawnLocation>();
-            foreach(SpawnPlace vendorLocation in DealingLocation.VendorLocations)
-            {
-                OtherSpawnLocations.Add(new SpawnLocation(vendorLocation.Position, vendorLocation.Heading));
-            }
-            foreach(ConditionalLocation conditionalLocation in DealingLocation.PossiblePedSpawns)
+            foreach(ConditionalLocation conditionalLocation in DealingLocation?.PossiblePedSpawns)
             {
                 OtherSpawnLocations.Add(new SpawnLocation(conditionalLocation.Location, conditionalLocation.Heading));
             }
-            foreach (ConditionalGroup conditionalGroup in DealingLocation.PossibleGroupSpawns)
+            foreach (ConditionalGroup conditionalGroup in DealingLocation?.PossibleGroupSpawns)
             {
-                foreach (ConditionalLocation conditionalLocation in conditionalGroup.PossiblePedSpawns)
+                foreach (ConditionalLocation conditionalLocation in conditionalGroup?.PossiblePedSpawns)
                 {
                     OtherSpawnLocations.Add(new SpawnLocation(conditionalLocation.Location, conditionalLocation.Heading));
                 }
             }
-
-            if(!OtherSpawnLocations.Any() && IsAmbush)
+            if(!OtherSpawnLocations.Any())// && IsAmbush)
             {
                 SpawnLocation fallbackspawnLocation = new SpawnLocation(DealingLocation.EntrancePosition.Around2D(50f));
                 fallbackspawnLocation.GetClosestStreet(false);
@@ -321,7 +332,11 @@ namespace LosSantosRED.lsr.Player.ActiveTasks
 
             foreach (SpawnLocation otherspawnLocation in OtherSpawnLocations)
             {
-                GangSpawnTask gangAdditionalSpawnTask = new GangSpawnTask(DealingGang, otherspawnLocation, null, DealingGang.GetRandomPed(0, ""), true, Settings, Weapons, Names, false, Crimes, PedGroups, ShopMenus, World, ModItems, true, true, true);
+                if(!RandomItems.RandomPercent(Settings.SettingsManager.TaskSettings.DugMeetContactGangBackupSpawnPercentage))
+                {
+                    continue;
+                }
+                GangSpawnTask gangAdditionalSpawnTask = new GangSpawnTask(DealingGang, otherspawnLocation, null, DealingGang.GetRandomPed(0, ""), Settings.SettingsManager.GangSettings.ShowSpawnedBlip, Settings, Weapons, Names, false, Crimes, PedGroups, ShopMenus, World, ModItems, true, true, true);
                 gangAdditionalSpawnTask.PlacePedOnGround = true;
                 gangAdditionalSpawnTask.AllowAnySpawn = true;
                 gangAdditionalSpawnTask.AllowBuddySpawn = true;
@@ -333,18 +348,14 @@ namespace LosSantosRED.lsr.Player.ActiveTasks
                     gm.IsHitSquad = false;
                     SpawnedMembers.Add(gm);
                 }
-                EntryPoint.WriteToConsole("SPAWNED ADDITIONAL PED DUE TO AMBUSH");
+                EntryPoint.WriteToConsole("SPAWNED ADDITIONAL PEDS");
             }
-
-
-            
-
         }
         private void CleanupPeds()
         {
             foreach(GangMember gm in SpawnedMembers)
             {
-                if(gm.Pedestrian.Exists())
+                if(gm.Pedestrian.Exists() && gm.DistanceToPlayer >= 200f)
                 {
                     gm.Pedestrian.IsPersistent = false;
                 }

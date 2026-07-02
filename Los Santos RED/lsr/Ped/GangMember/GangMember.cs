@@ -94,6 +94,11 @@ public class GangMember : PedExt, IWeaponIssuable
         ReputationReport.Update(perceptable, world, Settings);
         CurrentHealthState.Update(policeRespondable, world);//has a yield if they get damaged, seems ok       
     }
+    public override void OnDeath(IPoliceRespondable policeRespondable)
+    {
+        policeRespondable.GangTerritoryManager.AddCasuality(this);
+        base.OnDeath(policeRespondable);
+    }
 
     public void UpdateSpeech(IPoliceRespondable currentPlayer)
     {
@@ -295,6 +300,7 @@ public class GangMember : PedExt, IWeaponIssuable
     {
         int RepToRemove = -Settings.SettingsManager.GangSettings.RepDeductedKilled; 
         GangReputation gr = Player.RelationshipManager.GangRelationships.GetReputation(Gang);//.MembersKilled++;
+
         if (gr != null)
         {
             gr.MembersKilled++;
@@ -320,8 +326,8 @@ public class GangMember : PedExt, IWeaponIssuable
                 }
             }
         }
-
-       // ReputationReport.WasKilledByPlayer = true;
+        //Player.GangTerritoryManager.AddCasuality(Gang);
+        // ReputationReport.WasKilledByPlayer = true;
         ReputationReport.AddReputation(RepToRemove);
 
         EntryPoint.WriteToConsole($"KILLED ReputationReport.ReputationChangeAmount:{ReputationReport.ReputationChangeAmount} ({RepToRemove}) MembersKilled:{gr?.MembersKilled} {Gang.ShortName}");

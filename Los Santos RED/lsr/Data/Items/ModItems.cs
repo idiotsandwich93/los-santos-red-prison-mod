@@ -108,7 +108,6 @@ public class ModItems : IModItems
             }
         }
     }
-
     private void DefaultConfig_FullExpandedWeapons()
     {
         PossibleItems newPossibleItems = new PossibleItems();
@@ -161,7 +160,6 @@ public class ModItems : IModItems
 
         Serialization.SerializeParam(newPossibleItems, $"Plugins\\LosSantosRED\\AlternateConfigs\\{StaticStrings.FEWConfigFolder}\\ModItems+_{StaticStrings.FEWConfigSuffix}.xml");
     }
-
     private void DefaultConfig_FullExpandedJurisdiction()
     {
         PossibleItems newPossibleItems = new PossibleItems(); //PossibleItems.Copy();
@@ -215,7 +213,7 @@ public class ModItems : IModItems
         newPossibleItems.VehicleItems.Add(new VehicleItem("Albany STR Obstructor", true, ItemType.Vehicles) { OverrideMakeName = "Albany", ModelName = "polvstrliv" });
         
         Serialization.SerializeParam(newPossibleItems, "Plugins\\LosSantosRED\\AlternateConfigs\\FullExpandedJurisdiction\\Variations\\Vanilla Peds\\ModItems+_FullExpandedJurisdiction.xml");
-        Serialization.SerializeParam(newPossibleItems, "Plugins\\LosSantosRED\\AlternateConfigs\\FullExpandedJurisdiction\\Variations\\Full\\ModItems+_FullExpandedJurisdiction.xml");
+        //Serialization.SerializeParam(newPossibleItems, "Plugins\\LosSantosRED\\AlternateConfigs\\FullExpandedJurisdiction\\Variations\\Full\\ModItems+_FullExpandedJurisdiction.xml");
     }
     private void DefaultConfig_FullModernTraffic()
     {
@@ -345,7 +343,6 @@ public class ModItems : IModItems
         });
         //Serialization.SerializeParam(newPossibleItems, "Plugins\\LosSantosRED\\AlternateConfigs\\FullExpandedExperience\\ModItems_FullExpandedExperience.xml");
     }
-
     public void WriteToFile()
     {
         Serialization.SerializeParam(PossibleItems, ConfigFileName);
@@ -647,7 +644,7 @@ public class ModItems : IModItems
         PossibleItems.EquipmentItems.AddRange(new List<EquipmentItem>
         {
             new EquipmentItem("Health Pack","Is this real life or a video game?", ItemType.Equipment) {
-                ItemSubType = ItemSubType.HealthPack, AlwaysChangesHealth = true, HealthChangeAmount = 75,PackageItemID = "prop_ld_health_pack" },
+                ItemSubType = ItemSubType.HealthPack, AlwaysChangesHealth = true, HealthChangeAmount = 75,PackageItemID = "prop_ld_health_pack", StopsBleeding = true },
         });
     }
     private void DefaultConfig_Valuables()
@@ -1084,13 +1081,14 @@ public class ModItems : IModItems
                 IntoxicationPerInterval = 0.1f,
                 ItemSubType = ItemSubType.Beer },
 
-            new DrinkItem("Lean", "Sippin' slow, movin' dreamy.", ItemType.Drugs){
+            new DrinkItem("Lean", "Sippin' slow, movin' dreamy.", ItemType.Drinks){
                 ModelItemID = "prop_plastic_cup_02", //Cluckin Bell cup
                 IntoxicantName = "Low Proof Alcohol",
                 HungerChangeAmount = TinyHungerRecover,
                 SleepChangeAmount= -1.0f * TinySleepRecover,
                 ItemSubType= ItemSubType.Narcotic,
                 IntoxicationPerInterval = 0.2f,
+                IsPublicUseIllegal = true,
                 FindPercentage = 1},
             //Bean Machine
             new DrinkItem("High Noon Coffee", "Drip coffee, carbonated water, fruit syrup and taurine.", ItemType.Drinks){

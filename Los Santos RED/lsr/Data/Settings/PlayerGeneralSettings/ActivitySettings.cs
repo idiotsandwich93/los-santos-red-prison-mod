@@ -21,8 +21,6 @@ public class ActivitySettings : ISettingsDefaultable
     public float HoldUpDistance { get; set; }
     [Description("Allow the player to drag dead or unconscious peds.")]
     public bool AllowDraggingOtherPeds { get; set; }
-    [Description("Plays an animation the dragged ped.")]
-    public bool PlayDraggingPedAnimation { get; set; }
     [Description("Allow the player to hold a ped hostage at gunpoint.")]
     public bool AllowGrabbingPeds { get; set; }
     [Description("Allow the player to start random scenarios around the world.")]
@@ -116,6 +114,9 @@ public class ActivitySettings : ISettingsDefaultable
     public float PickPocketDistance { get; set; }
     public float AlarmPercentageBash { get; set; }
     public bool AllowSkippingCrafting { get; set; }
+    public bool UseMinigameForLockpick { get; set; }
+    public bool UseMinigameForHotwire { get; set; }
+    public bool ShowDrillScaleform { get; set; }
 
     [OnDeserialized()]
     private void SetValuesOnDeserialized(StreamingContext context)
@@ -137,7 +138,6 @@ public class ActivitySettings : ISettingsDefaultable
         AllowGrabbingPeds = true;
         AllowStartingScenarios = false;
         AllowPlayerCrouching = true;
-        PlayDraggingPedAnimation = true;
         CrouchingAdjustsMovementSpeed = true;
         CrouchMovementSpeedOverride = 5.0f;
         UseAltCameraWhenSitting = false;
@@ -208,5 +208,8 @@ public class ActivitySettings : ISettingsDefaultable
         AlarmPercentageBash = 50f;
         AllowSkippingCrafting = false;
 
+        UseMinigameForLockpick = true;
+        UseMinigameForHotwire = true;
+        ShowDrillScaleform = true;
     }
 }

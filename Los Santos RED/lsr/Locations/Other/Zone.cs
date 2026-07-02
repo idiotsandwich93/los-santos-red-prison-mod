@@ -50,7 +50,7 @@ public class Zone
     public eLocationType Type { get; set; } = eLocationType.Rural;
     public Vector2[] Boundaries { get; set; }
 
-
+    public bool DisableGangTakeover { get; set; }
 
     [XmlIgnore]
     public Agency AssignedLEAgency { get; set; }
@@ -59,7 +59,8 @@ public class Zone
     [XmlIgnore]
     public Gang AssignedGang { get; set; }
 
-
+    [XmlIgnore]
+    public bool IsContestedTerritory { get; set; }
 
     [XmlIgnore]
     public Agency AssignedEMSAgency { get; set; }
@@ -137,6 +138,24 @@ public class Zone
         DealerMenus = shopMenus.GetSpecificGroupContainer(DealerMenuContainerID);
         CustomerMenus = shopMenus.GetSpecificGroupContainer(CustomerMenuContainerID);
     }
+    public void UpdateGangItems(IGangTerritories gangTerritories)
+    {
+        Gangs = new List<Gang>();
+        List<Gang> GangStuff = gangTerritories.GetGangs(InternalGameName, 0);
+        if (GangStuff != null)
+        {
+            Gangs.AddRange(GangStuff);
+        }
+        Gang mainGang = gangTerritories.GetMainGang(InternalGameName);
+        if (mainGang != null)
+        {
+            AssignedGang = mainGang;
+        }
+        else
+        {
+            AssignedGang = null;
+        }
+    }
     public ShopMenu GetIllicitMenu(ISettingsProvideable Settings, IShopMenus ShopMenus)
     {
         float dealerPercentage = Settings.SettingsManager.CivilianSettings.DrugDealerPercentageMiddleZones;
@@ -193,6 +212,9 @@ public class Zone
 
 
         string toDisplay = $"{CurrentDefaultTextColor}" + FullZoneName(settings);
+
+
+
         if (!EntryPoint.IsLSPDFRIntegrationEnabled && settings.SettingsManager.LSRHUDSettings.ZoneDisplayShowPrimaryAgency && AssignedLEAgency != null)
         {
             toDisplay += $"{CurrentDefaultTextColor} / " + AssignedLEAgency.ColorInitials;
@@ -209,6 +231,10 @@ public class Zone
         else if (!EntryPoint.IsLSPDFRIntegrationEnabled && settings.SettingsManager.LSRHUDSettings.ZoneDisplayShowSecondaryAgency && AssignedSecondLEAgeny != null)
         {
             toDisplay += $"{CurrentDefaultTextColor} - " + AssignedSecondLEAgeny.ColorInitials;
+        }
+        if (IsContestedTerritory)
+        {
+            toDisplay +=" (Contested)";
         }
         return toDisplay;
     }
