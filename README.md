@@ -2,27 +2,34 @@
 
 > **This is a personal fork of Los Santos RED that adds a native, interactive prison/incarceration
 > system.** The original LSR README is below the divider. Full file-by-file detail:
-> **[PRISON_INTEGRATION.md](PRISON_INTEGRATION.md)**. Current build: **v1.0.0.1013**.
+> **[PRISON_INTEGRATION.md](PRISON_INTEGRATION.md)**. Current build: **v1.0.0.1027** — rebased onto
+> upstream LSR's Jul 2 drop (gang wars, bleeding-out, group-member driving; see below).
 
 Reimplements idiotsandwich's Bolingbroke Penitentiary experience as native LSR/RPH code (the two are incompatible
 runtimes, so it couldn't be linked directly). Adds a **"Serve Your Sentence"** option to the Busted
 menu.
 
 **What it adds (gameplay)**
-- **Serve a sentence** — get sent to the prison yard, swap into a jumpsuit, and serve against
-  a countdown HUD, then get released at the gate (clothes restored).
+- **Serve a sentence** — get sent to the prison yard, swap into a jumpsuit (body clothing only —
+  hair/eyebrows/face are never touched), and serve against a countdown HUD, then get released at
+  the gate.
 - **Sentence length scales with crimes** — `days = wanted×2 + policeKilled×5 + civiliansKilled×3` (clamped 1–30 days).
 - **Time served = 48 real minutes per day** — 1 in-game GTA day ≈ 48 real minutes, so 1 day = 48 min,
   8 days = 384 min, and so on. Deliberately punishing.
 - **Post bail** — press **Shift+B** to pay **$10,000 per sentenced day** (from cash + bank) and walk out
-  immediately, skipping the rest of the sentence. Uses LSR's own banking, like fines.
-- **Escape** — leave the perimeter and become a fugitive in a jumpsuit (wanted level applied; on foot, no chopper).
+  immediately, skipping the rest of the sentence, clothes restored. Uses LSR's own banking, like fines.
+- **Prison break** — a deliberate, free action: reach the fence break point and a **"Prison Break"**
+  prompt appears. Taking it teleports you outside the wall, keeps the jumpsuit, and reports the
+  **Prison Break** crime (a dedicated `Crimes.xml` entry, not generic trespassing) while you're still
+  in the yard among the guards — so it's genuinely witnessed and the wanted level sticks. Triggers an
+  immediate **5-star** manhunt with a lost-visual APB. No getaway vehicle, no weapon dump.
 - **Riot** — a prompt incites a **melee-only** inmate-vs-guard riot (no firearms/heavy weapons).
 - **Solitary** — assault someone and you're thrown in the hole; sentence extended, then back to gen-pop.
 - **Per-save isolation** — a sentence belongs to the save it started on; loading another character ends it cleanly (no carried-over wanted level).
 
-> **Yard population** (guards/inmates) is handled through the LSR **config XML** (the prison's
-> `PossiblePedSpawns` / dispatch groups), not by this mod's code.
+> **Yard population** (guards/inmates) is handled through the LSR **config XML** (`BlankLocation`
+> ped spawns + `DispatchablePeople` rosters, e.g. tower guards under the `SASPA` association), not
+> by this mod's code.
 
 **New code** (`lsr/Player/Incarceration/`): `IncarcerationManager.cs` (serve-loop orchestrator),
 `PrisonOutfit.cs` (jumpsuit via clothing components only — identity preserved), `PrisonRiot.cs`
@@ -34,6 +41,17 @@ post-bail through LSR's `BankAccounts`; and "while serving" exemptions so the pr
 inmate — the key fix is `VanillaRestrictedArea.Update()` now honoring authorization (the source of the
 immediate "Trespassing on Government Property" wanted level), plus `Violations` / `RestrictedAreaManager`
 / `OtherViolations`. See [PRISON_INTEGRATION.md](PRISON_INTEGRATION.md) for the complete file list.
+
+**Rebased onto upstream LSR (Jul 2 drop).** The fork's 14 surgical hook files were 3-way merged
+against the new upstream base (clean, no lost hooks), bringing in upstream's new systems alongside
+the prison work:
+- **Gang wars** — trigger a war on a gang contact call, take territory by hitting a kill quota in
+  the zone, then defend it through timed retaliation waves.
+- **Bleeding-out** — replaces the Gunshot Wound 2 mod; wounds can start a bleed that drains health
+  over time until treated or it stops naturally.
+- **Group-member driving** — put a recruited member in the driver's seat and they'll drive you to
+  your GPS waypoint.
+- Plus a lockpick minigame and a burner-phone Maps app.
 
 **Building:** targets .NET Framework 4.8 / C# 7.3. `libs/` (incl. the proprietary `RagePluginHookSDK.dll`)
 and `.buildtools/` are gitignored and **not** in this repo — restore them locally, then run
